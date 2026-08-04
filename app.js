@@ -17,9 +17,12 @@
   var CELL_TEXT_COLOR = "#1f2430";
   var DEFAULT_ROW_COUNT = 4;
   var DEFAULT_COL_COUNT = 6;
+  var DEFAULT_GAP_CELLS = 0.25;
+  var CELL_W = 88;
+  var GAP_X = 8;
 
   var state = {
-    patterns: [], // [{ id, name, rows: [{ segments: [n,...], cells: [{name, color}, ...] }] }]
+    patterns: [], // [{ id, name, rows: [{ segments: [n,...], gaps: [cellUnits,...], cells: [{name, color}, ...] }] }]
     activeId: null
   };
 
@@ -61,13 +64,28 @@
     return found || state.patterns[0];
   }
 
-  function createRow(segments) {
+  function createRow(segments, gaps) {
     var total = segmentsTotal(segments);
     var cells = [];
     for (var i = 0; i < total; i++) {
       cells.push({ name: "", color: null });
     }
-    return { segments: segments.slice(), cells: cells };
+    var normalizedGaps = gaps ? gaps.slice() : segments.slice(1).map(function () {
+      return DEFAULT_GAP_CELLS;
+    });
+    return { segments: segments.slice(), gaps: normalizedGaps, cells: cells };
+  }
+
+  function getGapCells(row, i) {
+    return row.gaps && row.gaps[i] !== undefined ? row.gaps[i] : DEFAULT_GAP_CELLS;
+  }
+
+  function gapCellsToPx(n) {
+    return n * CELL_W + Math.max(0, n - 1) * GAP_X;
+  }
+
+  function getGapPx(row, i) {
+    return gapCellsToPx(getGapCells(row, i));
   }
 
   function createPattern(name, rowCount, colCount) {
@@ -124,16 +142,44 @@
 
   // ---- row helpers (operate on active pattern) ----
 
-  function parseSegments(text) {
-    var parts = String(text || "")
+  function parseRowSpec(text) {
+    var tokens = String(text || "")
       .split(/[,+\s]+/)
-      .map(function (s) {
-        return parseInt(s, 10);
-      })
-      .filter(function (n) {
-        return Number.isFinite(n) && n > 0;
+      .filter(function (s) {
+        return s.length > 0;
       });
-    return parts.length > 0 ? parts : [1];
+    var segments = [];
+    var gaps = [];
+    var pendingGap = null;
+    tokens.forEach(function (tok) {
+      var gapMatch = /^g(\d*\.?\d+)$/i.exec(tok);
+      if (gapMatch) {
+        pendingGap = Math.max(0, parseFloat(gapMatch[1]));
+        return;
+      }
+      var n = parseInt(tok, 10);
+      if (!Number.isFinite(n) || n <= 0) return;
+      if (segments.length > 0) {
+        gaps.push(pendingGap !== null ? pendingGap : DEFAULT_GAP_CELLS);
+      }
+      segments.push(n);
+      pendingGap = null;
+    });
+    if (segments.length === 0) segments = [1];
+    return { segments: segments, gaps: gaps };
+  }
+
+  function formatGapCells(n) {
+    return Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100);
+  }
+
+  function serializeRowSpec(row) {
+    var parts = [];
+    row.segments.forEach(function (segLen, i) {
+      if (i > 0) parts.push("g" + formatGapCells(getGapCells(row, i - 1)));
+      parts.push(String(segLen));
+    });
+    return parts.join(",");
   }
 
   function segmentsTotal(segments) {
@@ -142,13 +188,14 @@
     }, 0);
   }
 
-  function regenerateRowCells(row, newSegments) {
+  function regenerateRowCells(row, newSegments, newGaps) {
     var total = segmentsTotal(newSegments);
     var newCells = [];
     for (var i = 0; i < total; i++) {
       newCells.push(row.cells[i] || { name: "", color: null });
     }
     row.segments = newSegments;
+    row.gaps = newGaps;
     row.cells = newCells;
   }
 
@@ -219,8 +266,11 @@
       var cellIdx = 0;
       row.segments.forEach(function (segLen, segIdx) {
         if (segIdx > 0) {
+          var gapPx = getGapPx(row, segIdx - 1);
           var spacer = document.createElement("div");
           spacer.className = "segmentGap";
+          spacer.style.width = gapPx + "px";
+          spacer.style.flex = "0 0 " + gapPx + "px";
           rowDiv.appendChild(spacer);
         }
         for (var i = 0; i < segLen; i++) {
@@ -346,11 +396,11 @@
 
       var input = document.createElement("input");
       input.type = "text";
-      input.value = row.segments.join(",");
+      input.value = serializeRowSpec(row);
       input.inputMode = "text";
       input.addEventListener("change", function () {
-        var newSegments = parseSegments(input.value);
-        regenerateRowCells(row, newSegments);
+        var spec = parseRowSpec(input.value);
+        regenerateRowCells(row, spec.segments, spec.gaps);
         selected = null;
         saveState();
         render();
@@ -539,7 +589,6 @@
     var cellH = 52;
     var gapX = 8;
     var gapY = 10;
-    var segGap = 20;
     var offsetShift = 44;
     var padding = 24;
     var titleH = 40;
@@ -547,7 +596,7 @@
     function rowContentWidth(row) {
       var w = 0;
       row.segments.forEach(function (segLen, i) {
-        if (i > 0) w += segGap;
+        if (i > 0) w += getGapPx(row, i - 1);
         w += segLen * cellW + (segLen - 1) * gapX;
       });
       return w;
@@ -580,7 +629,7 @@
 
       var cellIdx = 0;
       row.segments.forEach(function (segLen, segIdx) {
-        if (segIdx > 0) x += segGap;
+        if (segIdx > 0) x += getGapPx(row, segIdx - 1);
         for (var i = 0; i < segLen; i++) {
           var cellData = row.cells[cellIdx];
           ctx.fillStyle = cellData.color || "#ffffff";
