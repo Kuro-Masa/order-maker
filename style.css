@@ -303,6 +303,18 @@ svg {
   align-items: center;
 }
 
+.swatchWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.swatchLabel {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
 .swatch {
   width: 36px;
   height: 36px;
@@ -357,7 +369,8 @@ svg {
   align-items: center;
 }
 
-.row.offset {
+.row.offset,
+.conductorMark.offset {
   transform: translateX(44px);
 }
 
@@ -438,6 +451,11 @@ svg {
   margin-bottom: 10px;
 }
 
+.partCountsList[hidden],
+#autoColorBtn[hidden] {
+  display: none;
+}
+
 .partCountItem {
   display: flex;
   align-items: center;
@@ -506,4 +524,28 @@ svg {
   flex: 0 0 auto;
   padding: 8px 10px;
   min-height: 36px;
+}
+
+.conductorToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.conductorMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--panel-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 6px;
+  flex: 0 0 auto;
 }

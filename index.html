@@ -39,11 +39,13 @@
         <div class="partSchemeRow">
           <label for="partSchemeSelect">配色パターン</label>
           <select id="partSchemeSelect">
+            <option value="none">パート分けを使わない</option>
             <option value="4">4色(Sop/Alt/Ten/Bas)</option>
             <option value="6">6色(Sop/Mez/Alt/Ten/Bar/Bas)</option>
             <option value="8">8色(Sop1/Sop2/Alt1/Alt2/Ten1/Ten2/Bas1/Bas2)</option>
           </select>
         </div>
+        <p id="partNoneNote" class="rowsEditorNote" hidden>パート分けを使わない場合、色塗りモードで自由に色を選べます。</p>
         <div id="partCountsList" class="partCountsList"></div>
         <button id="autoColorBtn" class="btn primary">人数に応じて自動で色分け</button>
       </div>
@@ -61,6 +63,10 @@
         <p class="rowsEditorNote">行ごとのマス数。例: 「8」で8マス連続、「5,5」で5マス+すき間(既定0.25マス分)+5マス、「5,g2,5」ですき間をマス2個分に指定(小数も可)</p>
         <div id="rowsList" class="rowsList"></div>
         <button id="addRowBtn" class="btn">＋ 行を追加</button>
+        <label class="conductorToggle">
+          <input type="checkbox" id="showConductorCheckbox" checked>
+          一番下の中央に指揮者マークを表示
+        </label>
       </div>
     </div>
   </details>

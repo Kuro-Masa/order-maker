@@ -76,8 +76,10 @@
     hint: document.getElementById("hint"),
     rowsList: document.getElementById("rowsList"),
     addRowBtn: document.getElementById("addRowBtn"),
+    showConductorCheckbox: document.getElementById("showConductorCheckbox"),
     partSchemeSelect: document.getElementById("partSchemeSelect"),
     partCountsList: document.getElementById("partCountsList"),
+    partNoneNote: document.getElementById("partNoneNote"),
     autoColorBtn: document.getElementById("autoColorBtn")
   };
 
@@ -123,7 +125,11 @@
     for (var i = 0; i < rowCount; i++) {
       rows.push(createRow([colCount]));
     }
-    return { id: makeId(), name: name, rows: rows, partSettings: { scheme: "4", counts: {} } };
+    return { id: makeId(), name: name, rows: rows, partSettings: { scheme: "4", counts: {} }, showConductor: true };
+  }
+
+  function showsConductor(pattern) {
+    return pattern.showConductor !== false;
   }
 
   function ensurePartSettings(pattern) {
@@ -131,6 +137,16 @@
       pattern.partSettings = { scheme: "4", counts: {} };
     }
     return pattern.partSettings;
+  }
+
+  function getActivePalette(pattern) {
+    var settings = ensurePartSettings(pattern);
+    if (settings.scheme === "none" || !PART_SCHEMES[settings.scheme]) {
+      return PALETTE.map(function (color) {
+        return { key: null, color: color };
+      });
+    }
+    return PART_SCHEMES[settings.scheme];
   }
 
   function addPattern() {
@@ -267,6 +283,7 @@
     renderPalette();
     renderRowsList();
     renderPartSettings();
+    el.showConductorCheckbox.checked = showsConductor(getActivePattern());
     updateHint();
     updateModeButtons();
   }
@@ -319,6 +336,15 @@
 
       el.grid.appendChild(rowDiv);
     });
+
+    if (showsConductor(pattern)) {
+      var lastRowIsOffset = (pattern.rows.length - 1) % 2 === 1;
+      var mark = document.createElement("div");
+      mark.className = "conductorMark" + (lastRowIsOffset ? " offset" : "");
+      mark.textContent = "指揮";
+      mark.title = "指揮者(この位置が前)";
+      el.grid.appendChild(mark);
+    }
   }
 
   function createCellEl(row, r, c) {
@@ -392,19 +418,41 @@
       el.palette.innerHTML = "";
       return;
     }
+
+    var activePalette = getActivePalette(getActivePattern());
+    var validColors = activePalette.map(function (p) {
+      return p.color;
+    });
+    if (currentColor !== null && validColors.indexOf(currentColor) === -1) {
+      currentColor = null;
+    }
+
     el.palette.hidden = false;
     el.palette.innerHTML = "";
 
-    PALETTE.forEach(function (color) {
+    activePalette.forEach(function (part) {
+      var wrap = document.createElement("div");
+      wrap.className = "swatchWrap";
+
       var sw = document.createElement("button");
       sw.type = "button";
-      sw.className = "swatch" + (currentColor === color ? " active" : "");
-      sw.style.background = color;
+      sw.className = "swatch" + (currentColor === part.color ? " active" : "");
+      sw.style.background = part.color;
+      if (part.key) sw.title = part.key;
       sw.addEventListener("click", function () {
-        currentColor = color;
+        currentColor = part.color;
         renderPalette();
       });
-      el.palette.appendChild(sw);
+      wrap.appendChild(sw);
+
+      if (part.key) {
+        var label = document.createElement("span");
+        label.className = "swatchLabel";
+        label.textContent = part.key;
+        wrap.appendChild(label);
+      }
+
+      el.palette.appendChild(wrap);
     });
 
     var clearSw = document.createElement("button");
@@ -469,8 +517,14 @@
     var settings = ensurePartSettings(pattern);
     el.partSchemeSelect.value = settings.scheme;
 
-    var parts = PART_SCHEMES[settings.scheme];
+    var isNone = settings.scheme === "none";
+    el.partNoneNote.hidden = !isNone;
+    el.partCountsList.hidden = isNone;
+    el.autoColorBtn.hidden = isNone;
     el.partCountsList.innerHTML = "";
+    if (isNone) return;
+
+    var parts = PART_SCHEMES[settings.scheme];
 
     parts.forEach(function (part) {
       var item = document.createElement("div");
@@ -518,6 +572,7 @@
     var pattern = getActivePattern();
     var settings = ensurePartSettings(pattern);
     var parts = PART_SCHEMES[settings.scheme];
+    if (!parts) return;
 
     var flatCells = getCellsColumnMajor(pattern);
 
@@ -683,6 +738,18 @@
   }
 
   function downloadBlob(blob, filename) {
+    if (navigator.canShare && typeof File !== "undefined") {
+      try {
+        var file = new File([blob], filename, { type: blob.type });
+        if (navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file] }).catch(function () {});
+          return;
+        }
+      } catch (e) {
+        // fall through to anchor download
+      }
+    }
+
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
@@ -723,6 +790,9 @@
     var offsetShift = 44;
     var padding = 24;
     var titleH = 40;
+    var markH = 44;
+    var markGapY = 14;
+    var withConductor = showsConductor(pattern);
 
     function rowContentWidth(row) {
       var w = 0;
@@ -741,7 +811,8 @@
     var canvas = document.createElement("canvas");
     canvas.width = padding * 2 + maxRowWidth + offsetShift;
     canvas.height =
-      padding * 2 + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY;
+      padding * 2 + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY +
+      (withConductor ? markGapY + markH : 0);
     var ctx = canvas.getContext("2d");
 
     ctx.fillStyle = "#ffffff";
@@ -777,6 +848,23 @@
         }
       });
     });
+
+    if (withConductor) {
+      var markY =
+        padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY + markGapY;
+      var lastRowIsOffset = (pattern.rows.length - 1) % 2 === 1;
+      var markCx = padding + maxRowWidth / 2 + (lastRowIsOffset ? offsetShift : 0);
+      var markCy = markY + markH / 2;
+      ctx.fillStyle = CELL_TEXT_COLOR;
+      ctx.beginPath();
+      ctx.arc(markCx, markCy, markH / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("指揮", markCx, markCy);
+    }
 
     canvas.toBlob(function (blob) {
       if (!blob) {
@@ -866,6 +954,12 @@
     render();
   });
 
+  el.showConductorCheckbox.addEventListener("change", function () {
+    getActivePattern().showConductor = el.showConductorCheckbox.checked;
+    saveState();
+    renderGrid();
+  });
+
   el.partSchemeSelect.addEventListener("change", function () {
     var pattern = getActivePattern();
     var settings = ensurePartSettings(pattern);
@@ -873,6 +967,7 @@
     settings.counts = {};
     saveState();
     renderPartSettings();
+    renderPalette();
   });
 
   el.autoColorBtn.addEventListener("click", autoColorizeByParts);
