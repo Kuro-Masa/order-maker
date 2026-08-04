@@ -14,6 +14,33 @@
     "#cfd3da"
   ];
 
+  var PART_SCHEMES = {
+    "4": [
+      { key: "Sop", color: "#f5c28a" },
+      { key: "Alt", color: "#cbaee0" },
+      { key: "Ten", color: "#9dc0e8" },
+      { key: "Bas", color: "#a3d9a0" }
+    ],
+    "6": [
+      { key: "Sop", color: "#f5c28a" },
+      { key: "Mez", color: "#e8a8c0" },
+      { key: "Alt", color: "#cbaee0" },
+      { key: "Ten", color: "#9dc0e8" },
+      { key: "Bar", color: "#8cc4b8" },
+      { key: "Bas", color: "#a3d9a0" }
+    ],
+    "8": [
+      { key: "Sop1", color: "#f2b0a3" },
+      { key: "Sop2", color: "#f5e3a3" },
+      { key: "Alt1", color: "#e3d2ef" },
+      { key: "Alt2", color: "#9b6bb3" },
+      { key: "Ten1", color: "#c9dff2" },
+      { key: "Ten2", color: "#5f8fc4" },
+      { key: "Bas1", color: "#c8ecc4" },
+      { key: "Bas2", color: "#5fa85c" }
+    ]
+  };
+
   var CELL_TEXT_COLOR = "#1f2430";
   var DEFAULT_ROW_COUNT = 4;
   var DEFAULT_COL_COUNT = 6;
@@ -48,7 +75,10 @@
     palette: document.getElementById("palette"),
     hint: document.getElementById("hint"),
     rowsList: document.getElementById("rowsList"),
-    addRowBtn: document.getElementById("addRowBtn")
+    addRowBtn: document.getElementById("addRowBtn"),
+    partSchemeSelect: document.getElementById("partSchemeSelect"),
+    partCountsList: document.getElementById("partCountsList"),
+    autoColorBtn: document.getElementById("autoColorBtn")
   };
 
   // ---- id / pattern helpers ----
@@ -93,7 +123,14 @@
     for (var i = 0; i < rowCount; i++) {
       rows.push(createRow([colCount]));
     }
-    return { id: makeId(), name: name, rows: rows };
+    return { id: makeId(), name: name, rows: rows, partSettings: { scheme: "4", counts: {} } };
+  }
+
+  function ensurePartSettings(pattern) {
+    if (!pattern.partSettings) {
+      pattern.partSettings = { scheme: "4", counts: {} };
+    }
+    return pattern.partSettings;
   }
 
   function addPattern() {
@@ -229,6 +266,7 @@
     renderGrid();
     renderPalette();
     renderRowsList();
+    renderPartSettings();
     updateHint();
     updateModeButtons();
   }
@@ -422,6 +460,99 @@
       item.appendChild(removeBtn);
       el.rowsList.appendChild(item);
     });
+  }
+
+  // ---- rendering: part settings ----
+
+  function renderPartSettings() {
+    var pattern = getActivePattern();
+    var settings = ensurePartSettings(pattern);
+    el.partSchemeSelect.value = settings.scheme;
+
+    var parts = PART_SCHEMES[settings.scheme];
+    el.partCountsList.innerHTML = "";
+
+    parts.forEach(function (part) {
+      var item = document.createElement("div");
+      item.className = "partCountItem";
+
+      var swatch = document.createElement("span");
+      swatch.className = "partSwatch";
+      swatch.style.background = part.color;
+
+      var label = document.createElement("span");
+      label.className = "partLabel";
+      label.textContent = part.key;
+
+      var input = document.createElement("input");
+      input.type = "number";
+      input.min = "0";
+      input.inputMode = "numeric";
+      input.value = settings.counts[part.key] || 0;
+      input.addEventListener("input", function () {
+        settings.counts[part.key] = Math.max(0, parseInt(input.value, 10) || 0);
+        saveState();
+      });
+
+      item.appendChild(swatch);
+      item.appendChild(label);
+      item.appendChild(input);
+      el.partCountsList.appendChild(item);
+    });
+  }
+
+  function getCellsColumnMajor(pattern) {
+    var maxLen = pattern.rows.reduce(function (max, row) {
+      return Math.max(max, row.cells.length);
+    }, 0);
+    var flatCells = [];
+    for (var c = 0; c < maxLen; c++) {
+      pattern.rows.forEach(function (row) {
+        if (row.cells[c]) flatCells.push(row.cells[c]);
+      });
+    }
+    return flatCells;
+  }
+
+  function autoColorizeByParts() {
+    var pattern = getActivePattern();
+    var settings = ensurePartSettings(pattern);
+    var parts = PART_SCHEMES[settings.scheme];
+
+    var flatCells = getCellsColumnMajor(pattern);
+
+    var partsTotal = parts.reduce(function (sum, part) {
+      return sum + (settings.counts[part.key] || 0);
+    }, 0);
+
+    if (partsTotal === 0) {
+      alert("各パートの人数を入力してください");
+      return;
+    }
+    if (!confirm("マスの色を人数に応じて自動で塗り直します。既存の色は上書きされます。よろしいですか?")) return;
+
+    flatCells.forEach(function (c) {
+      c.color = null;
+    });
+
+    var idx = 0;
+    parts.forEach(function (part) {
+      var count = settings.counts[part.key] || 0;
+      for (var i = 0; i < count && idx < flatCells.length; i++) {
+        flatCells[idx].color = part.color;
+        idx++;
+      }
+    });
+
+    saveState();
+    renderGrid();
+
+    if (partsTotal > flatCells.length) {
+      alert(
+        "人数の合計(" + partsTotal + "人)がマスの数(" + flatCells.length + "個)を超えています。" +
+        flatCells.length + "個目までしか色を割り当てられませんでした。"
+      );
+    }
   }
 
   // ---- hint / mode buttons ----
@@ -734,6 +865,17 @@
     saveState();
     render();
   });
+
+  el.partSchemeSelect.addEventListener("change", function () {
+    var pattern = getActivePattern();
+    var settings = ensurePartSettings(pattern);
+    settings.scheme = el.partSchemeSelect.value;
+    settings.counts = {};
+    saveState();
+    renderPartSettings();
+  });
+
+  el.autoColorBtn.addEventListener("click", autoColorizeByParts);
 
   el.importCsvInput.addEventListener("change", function () {
     closeMenu();
