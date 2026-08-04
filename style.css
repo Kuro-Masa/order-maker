@@ -59,39 +59,6 @@ svg {
   stroke: currentColor;
 }
 
-.panel {
-  background: var(--panel-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.setup .field {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.setup label {
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-.setup input[type="number"] {
-  width: 64px;
-  padding: 8px;
-  font-size: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-}
-
 .btn {
   appearance: none;
   border: 1px solid var(--border);
@@ -284,10 +251,6 @@ svg {
 
 .accordionBody {
   padding: 0 10px 10px;
-}
-
-.accordionBody .panel {
-  margin-bottom: 10px;
 }
 
 /* ---- toolbar: mode switch + export icons ---- */

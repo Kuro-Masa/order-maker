@@ -15,6 +15,8 @@
   ];
 
   var CELL_TEXT_COLOR = "#1f2430";
+  var DEFAULT_ROW_COUNT = 4;
+  var DEFAULT_COL_COUNT = 6;
 
   var state = {
     patterns: [], // [{ id, name, rows: [{ segments: [n,...], cells: [{name, color}, ...] }] }]
@@ -32,9 +34,6 @@
     menuPanel: document.getElementById("menuPanel"),
     renamePatternBtn: document.getElementById("renamePatternBtn"),
     deletePatternBtn: document.getElementById("deletePatternBtn"),
-    rowCount: document.getElementById("rowCount"),
-    colCount: document.getElementById("colCount"),
-    generateBtn: document.getElementById("generateBtn"),
     modeEditBtn: document.getElementById("modeEditBtn"),
     modeSwapBtn: document.getElementById("modeSwapBtn"),
     modePaintBtn: document.getElementById("modePaintBtn"),
@@ -80,10 +79,8 @@
   }
 
   function addPattern() {
-    var rowCount = Math.max(1, parseInt(el.rowCount.value, 10) || 4);
-    var colCount = Math.max(1, parseInt(el.colCount.value, 10) || 6);
     nextPatternNum = state.patterns.length + 1;
-    var pattern = createPattern("パターン" + nextPatternNum, rowCount, colCount);
+    var pattern = createPattern("パターン" + nextPatternNum, DEFAULT_ROW_COUNT, DEFAULT_COL_COUNT);
     state.patterns.push(pattern);
     state.activeId = pattern.id;
     selected = null;
@@ -153,26 +150,6 @@
     }
     row.segments = newSegments;
     row.cells = newCells;
-  }
-
-  function hasAnyData(pattern) {
-    return pattern.rows.some(function (row) {
-      return row.cells.some(function (c) {
-        return c.name || c.color;
-      });
-    });
-  }
-
-  function generateUniformRows(rowCount, colCount) {
-    var pattern = getActivePattern();
-    var rows = [];
-    for (var i = 0; i < rowCount; i++) {
-      rows.push(createRow([colCount]));
-    }
-    pattern.rows = rows;
-    selected = null;
-    saveState();
-    render();
   }
 
   // ---- persistence ----
@@ -657,13 +634,6 @@
 
   // ---- wiring ----
 
-  el.generateBtn.addEventListener("click", function () {
-    var rowCount = Math.max(1, parseInt(el.rowCount.value, 10) || 1);
-    var colCount = Math.max(1, parseInt(el.colCount.value, 10) || 1);
-    if (hasAnyData(getActivePattern()) && !confirm("現在の内容は上書きされます。よろしいですか?")) return;
-    generateUniformRows(rowCount, colCount);
-  });
-
   el.modeEditBtn.addEventListener("click", function () {
     setMode("edit");
   });
@@ -708,8 +678,10 @@
   });
 
   el.addRowBtn.addEventListener("click", function () {
-    var colCount = Math.max(1, parseInt(el.colCount.value, 10) || 6);
-    getActivePattern().rows.push(createRow([colCount]));
+    var pattern = getActivePattern();
+    var lastRow = pattern.rows[pattern.rows.length - 1];
+    var colCount = lastRow ? segmentsTotal(lastRow.segments) : DEFAULT_COL_COUNT;
+    pattern.rows.push(createRow([colCount]));
     saveState();
     render();
   });
@@ -727,11 +699,7 @@
 
   var restored = loadState();
   if (!restored) {
-    var pattern = createPattern(
-      "パターン1",
-      parseInt(el.rowCount.value, 10) || 4,
-      parseInt(el.colCount.value, 10) || 6
-    );
+    var pattern = createPattern("パターン1", DEFAULT_ROW_COUNT, DEFAULT_COL_COUNT);
     state.patterns = [pattern];
     state.activeId = pattern.id;
     saveState();
