@@ -46,7 +46,13 @@
   var DEFAULT_COL_COUNT = 6;
   var DEFAULT_GAP_CELLS = 0.25;
   var CELL_W = 88;
+  var CELL_H = 52;
   var GAP_X = 8;
+  var GAP_Y = 10;
+  var GRID_PAD_LEFT = 4;
+  var RISER_PAD = 8;
+  var RISER_COLOR = "#d9c7a8";
+  var RISER_BORDER = "#b3987a";
 
   var state = {
     patterns: [], // [{ id, name, rows: [{ segments: [n,...], gaps: [cellUnits,...], cells: [{name, color}, ...] }] }]
@@ -76,10 +82,12 @@
     hint: document.getElementById("hint"),
     rowsList: document.getElementById("rowsList"),
     addRowBtn: document.getElementById("addRowBtn"),
+    cellTotalSummary: document.getElementById("cellTotalSummary"),
     showConductorCheckbox: document.getElementById("showConductorCheckbox"),
     partSchemeSelect: document.getElementById("partSchemeSelect"),
     partCountsList: document.getElementById("partCountsList"),
     partNoneNote: document.getElementById("partNoneNote"),
+    partTotalSummary: document.getElementById("partTotalSummary"),
     autoColorBtn: document.getElementById("autoColorBtn")
   };
 
@@ -96,7 +104,7 @@
     return found || state.patterns[0];
   }
 
-  function createRow(segments, gaps) {
+  function createRow(segments, gaps, name) {
     var total = segmentsTotal(segments);
     var cells = [];
     for (var i = 0; i < total; i++) {
@@ -105,7 +113,15 @@
     var normalizedGaps = gaps ? gaps.slice() : segments.slice(1).map(function () {
       return DEFAULT_GAP_CELLS;
     });
-    return { segments: segments.slice(), gaps: normalizedGaps, cells: cells };
+    return { segments: segments.slice(), gaps: normalizedGaps, cells: cells, name: name || "", onRiser: false };
+  }
+
+  function rowDisplayName(row, r) {
+    return row.name || "第" + (r + 1) + "行";
+  }
+
+  function rowOnRiser(row) {
+    return !!row.onRiser;
   }
 
   function getGapCells(row, i) {
@@ -118,6 +134,21 @@
 
   function getGapPx(row, i) {
     return gapCellsToPx(getGapCells(row, i));
+  }
+
+  function rowContentWidthPx(row) {
+    var w = 0;
+    row.segments.forEach(function (segLen, i) {
+      if (i > 0) w += getGapPx(row, i - 1);
+      w += segLen * CELL_W + (segLen - 1) * GAP_X;
+    });
+    return w;
+  }
+
+  function maxRowWidthPx(pattern) {
+    return pattern.rows.reduce(function (max, row) {
+      return Math.max(max, rowContentWidthPx(row));
+    }, 0);
   }
 
   function createPattern(name, rowCount, colCount) {
@@ -203,22 +234,35 @@
       });
     var segments = [];
     var gaps = [];
-    var pendingGap = null;
+    var currentSum = 0;
+    var hasCurrent = false;
+
+    function flushSegment() {
+      if (hasCurrent) {
+        segments.push(currentSum);
+        currentSum = 0;
+        hasCurrent = false;
+      }
+    }
+
     tokens.forEach(function (tok) {
-      var gapMatch = /^g(\d*\.?\d+)$/i.exec(tok);
+      var gapMatch = /^E(\d*\.?\d+)$/i.exec(tok);
       if (gapMatch) {
-        pendingGap = Math.max(0, parseFloat(gapMatch[1]));
+        flushSegment();
+        gaps.push(Math.max(0, parseFloat(gapMatch[1])));
         return;
       }
       var n = parseInt(tok, 10);
       if (!Number.isFinite(n) || n <= 0) return;
-      if (segments.length > 0) {
-        gaps.push(pendingGap !== null ? pendingGap : DEFAULT_GAP_CELLS);
-      }
-      segments.push(n);
-      pendingGap = null;
+      currentSum += n;
+      hasCurrent = true;
     });
+    flushSegment();
+
     if (segments.length === 0) segments = [1];
+    while (gaps.length > segments.length - 1) gaps.pop();
+    while (gaps.length < segments.length - 1) gaps.push(DEFAULT_GAP_CELLS);
+
     return { segments: segments, gaps: gaps };
   }
 
@@ -229,7 +273,7 @@
   function serializeRowSpec(row) {
     var parts = [];
     row.segments.forEach(function (segLen, i) {
-      if (i > 0) parts.push("g" + formatGapCells(getGapCells(row, i - 1)));
+      if (i > 0) parts.push("E" + formatGapCells(getGapCells(row, i - 1)));
       parts.push(String(segLen));
     });
     return parts.join(",");
@@ -313,10 +357,19 @@
   function renderGrid() {
     var pattern = getActivePattern();
     el.grid.innerHTML = "";
+    var cellsWraps = [];
 
     pattern.rows.forEach(function (row, r) {
       var rowDiv = document.createElement("div");
       rowDiv.className = "row" + (r % 2 === 1 ? " offset" : "");
+
+      var nameLabel = document.createElement("span");
+      nameLabel.className = "rowNameLabel";
+      nameLabel.textContent = rowDisplayName(row, r);
+      rowDiv.appendChild(nameLabel);
+
+      var cellsWrap = document.createElement("div");
+      cellsWrap.className = "cellsWrap";
 
       var cellIdx = 0;
       row.segments.forEach(function (segLen, segIdx) {
@@ -326,15 +379,17 @@
           spacer.className = "segmentGap";
           spacer.style.width = gapPx + "px";
           spacer.style.flex = "0 0 " + gapPx + "px";
-          rowDiv.appendChild(spacer);
+          cellsWrap.appendChild(spacer);
         }
         for (var i = 0; i < segLen; i++) {
-          rowDiv.appendChild(createCellEl(row, r, cellIdx));
+          cellsWrap.appendChild(createCellEl(row, r, cellIdx));
           cellIdx++;
         }
       });
 
+      rowDiv.appendChild(cellsWrap);
       el.grid.appendChild(rowDiv);
+      cellsWraps.push(cellsWrap);
     });
 
     if (showsConductor(pattern)) {
@@ -344,6 +399,49 @@
       mark.textContent = "指揮";
       mark.title = "指揮者(この位置が前)";
       el.grid.appendChild(mark);
+    }
+
+    renderRiserBackgrounds(pattern, cellsWraps);
+  }
+
+  function renderRiserBackgrounds(pattern, cellsWraps) {
+    if (cellsWraps.length === 0) return;
+    var gridRect = el.grid.getBoundingClientRect();
+
+    // Every riser shares one common span wide enough to contain every row
+    // (including staggered ones), so all platforms line up and match width.
+    var minLeft = Infinity;
+    var maxRight = -Infinity;
+    cellsWraps.forEach(function (w) {
+      var r = w.getBoundingClientRect();
+      minLeft = Math.min(minLeft, r.left - gridRect.left);
+      maxRight = Math.max(maxRight, r.right - gridRect.left);
+    });
+    var left = minLeft - RISER_PAD;
+    var width = maxRight - minLeft + RISER_PAD * 2;
+
+    var i = 0;
+    while (i < pattern.rows.length) {
+      if (!rowOnRiser(pattern.rows[i])) {
+        i++;
+        continue;
+      }
+      var start = i;
+      while (i < pattern.rows.length && rowOnRiser(pattern.rows[i])) i++;
+      var end = i - 1;
+
+      var startRect = cellsWraps[start].getBoundingClientRect();
+      var endRect = cellsWraps[end].getBoundingClientRect();
+      var top = startRect.top - gridRect.top - RISER_PAD;
+      var bottom = endRect.bottom - gridRect.top + RISER_PAD;
+
+      var bg = document.createElement("div");
+      bg.className = "riserBg";
+      bg.style.left = left + "px";
+      bg.style.width = width + "px";
+      bg.style.top = top + "px";
+      bg.style.height = bottom - top + "px";
+      el.grid.appendChild(bg);
     }
   }
 
@@ -476,12 +574,24 @@
       var item = document.createElement("div");
       item.className = "rowItem";
 
-      var label = document.createElement("span");
-      label.className = "rowLabel";
-      label.textContent = "第" + (r + 1) + "行";
+      var topRow = document.createElement("div");
+      topRow.className = "rowItemTop";
+
+      var nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "rowNameInput";
+      nameInput.value = row.name || "";
+      nameInput.placeholder = "第" + (r + 1) + "行";
+      nameInput.maxLength = 12;
+      nameInput.addEventListener("input", function () {
+        row.name = nameInput.value;
+        saveState();
+        renderGrid();
+      });
 
       var input = document.createElement("input");
       input.type = "text";
+      input.className = "rowSpecInput";
       input.value = serializeRowSpec(row);
       input.inputMode = "text";
       input.addEventListener("change", function () {
@@ -495,7 +605,10 @@
       var removeBtn = document.createElement("button");
       removeBtn.type = "button";
       removeBtn.className = "btn remove";
-      removeBtn.textContent = "削除";
+      removeBtn.setAttribute("aria-label", "この行を削除");
+      removeBtn.title = "この行を削除";
+      removeBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       removeBtn.addEventListener("click", function () {
         pattern.rows.splice(r, 1);
         selected = null;
@@ -503,9 +616,24 @@
         render();
       });
 
-      item.appendChild(label);
-      item.appendChild(input);
-      item.appendChild(removeBtn);
+      var riserToggle = document.createElement("label");
+      riserToggle.className = "riserToggle";
+      var riserCheckbox = document.createElement("input");
+      riserCheckbox.type = "checkbox";
+      riserCheckbox.checked = rowOnRiser(row);
+      riserCheckbox.addEventListener("change", function () {
+        row.onRiser = riserCheckbox.checked;
+        saveState();
+        renderGrid();
+      });
+      riserToggle.appendChild(riserCheckbox);
+      riserToggle.appendChild(document.createTextNode("段に乗る(プレビューに背景を表示)"));
+
+      topRow.appendChild(nameInput);
+      topRow.appendChild(input);
+      topRow.appendChild(removeBtn);
+      item.appendChild(topRow);
+      item.appendChild(riserToggle);
       el.rowsList.appendChild(item);
     });
   }
@@ -521,38 +649,71 @@
     el.partNoneNote.hidden = !isNone;
     el.partCountsList.hidden = isNone;
     el.autoColorBtn.hidden = isNone;
+    el.partTotalSummary.hidden = isNone;
     el.partCountsList.innerHTML = "";
-    if (isNone) return;
 
-    var parts = PART_SCHEMES[settings.scheme];
+    if (!isNone) {
+      var parts = PART_SCHEMES[settings.scheme];
 
-    parts.forEach(function (part) {
-      var item = document.createElement("div");
-      item.className = "partCountItem";
+      parts.forEach(function (part) {
+        var item = document.createElement("div");
+        item.className = "partCountItem";
 
-      var swatch = document.createElement("span");
-      swatch.className = "partSwatch";
-      swatch.style.background = part.color;
+        var swatch = document.createElement("span");
+        swatch.className = "partSwatch";
+        swatch.style.background = part.color;
 
-      var label = document.createElement("span");
-      label.className = "partLabel";
-      label.textContent = part.key;
+        var label = document.createElement("span");
+        label.className = "partLabel";
+        label.textContent = part.key;
 
-      var input = document.createElement("input");
-      input.type = "number";
-      input.min = "0";
-      input.inputMode = "numeric";
-      input.value = settings.counts[part.key] || 0;
-      input.addEventListener("input", function () {
-        settings.counts[part.key] = Math.max(0, parseInt(input.value, 10) || 0);
-        saveState();
+        var input = document.createElement("input");
+        input.type = "number";
+        input.min = "0";
+        input.inputMode = "numeric";
+        input.value = settings.counts[part.key] || 0;
+        input.addEventListener("input", function () {
+          settings.counts[part.key] = Math.max(0, parseInt(input.value, 10) || 0);
+          saveState();
+          updateTotals();
+        });
+
+        item.appendChild(swatch);
+        item.appendChild(label);
+        item.appendChild(input);
+        el.partCountsList.appendChild(item);
       });
+    }
 
-      item.appendChild(swatch);
-      item.appendChild(label);
-      item.appendChild(input);
-      el.partCountsList.appendChild(item);
-    });
+    updateTotals();
+  }
+
+  function totalCellCount(pattern) {
+    return pattern.rows.reduce(function (sum, row) {
+      return sum + row.cells.length;
+    }, 0);
+  }
+
+  function updateTotals() {
+    var pattern = getActivePattern();
+    var settings = ensurePartSettings(pattern);
+    var cellsTotal = totalCellCount(pattern);
+    el.cellTotalSummary.textContent = "マスの数: " + cellsTotal + "個";
+
+    if (settings.scheme === "none") {
+      el.cellTotalSummary.classList.remove("mismatch");
+      return;
+    }
+
+    var parts = PART_SCHEMES[settings.scheme] || [];
+    var partsTotal = parts.reduce(function (sum, part) {
+      return sum + (settings.counts[part.key] || 0);
+    }, 0);
+    var mismatch = partsTotal !== cellsTotal;
+
+    el.partTotalSummary.textContent = "人数合計: " + partsTotal + "人";
+    el.partTotalSummary.classList.toggle("mismatch", mismatch);
+    el.cellTotalSummary.classList.toggle("mismatch", mismatch);
   }
 
   function getCellsColumnMajor(pattern) {
@@ -783,10 +944,10 @@
 
   function exportImage() {
     var pattern = getActivePattern();
-    var cellW = 88;
-    var cellH = 52;
-    var gapX = 8;
-    var gapY = 10;
+    var cellW = CELL_W;
+    var cellH = CELL_H;
+    var gapX = GAP_X;
+    var gapY = GAP_Y;
     var offsetShift = 44;
     var padding = 24;
     var titleH = 40;
@@ -794,22 +955,11 @@
     var markGapY = 14;
     var withConductor = showsConductor(pattern);
 
-    function rowContentWidth(row) {
-      var w = 0;
-      row.segments.forEach(function (segLen, i) {
-        if (i > 0) w += getGapPx(row, i - 1);
-        w += segLen * cellW + (segLen - 1) * gapX;
-      });
-      return w;
-    }
-
-    var rowWidths = pattern.rows.map(rowContentWidth);
-    var maxRowWidth = rowWidths.reduce(function (a, b) {
-      return Math.max(a, b);
-    }, 0);
+    var rowWidths = pattern.rows.map(rowContentWidthPx);
+    var maxRowWidth = maxRowWidthPx(pattern);
 
     var canvas = document.createElement("canvas");
-    canvas.width = padding * 2 + maxRowWidth + offsetShift;
+    canvas.width = padding * 2 + maxRowWidth + offsetShift + RISER_PAD;
     canvas.height =
       padding * 2 + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY +
       (withConductor ? markGapY + markH : 0);
@@ -823,6 +973,37 @@
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText(pattern.name || "並び順", padding, padding);
+
+    // Every riser shares one common span wide enough to contain every row
+    // (including staggered ones), so all platforms line up and match width.
+    var minLeft = Infinity;
+    var maxRight = -Infinity;
+    pattern.rows.forEach(function (row, r) {
+      var rowBaseX = padding + (maxRowWidth - rowWidths[r]) / 2 + (r % 2 === 1 ? offsetShift : 0);
+      minLeft = Math.min(minLeft, rowBaseX);
+      maxRight = Math.max(maxRight, rowBaseX + rowWidths[r]);
+    });
+    var riserLeft = minLeft - RISER_PAD;
+    var riserWidth = maxRight - minLeft + RISER_PAD * 2;
+    var ri = 0;
+    while (ri < pattern.rows.length) {
+      if (!rowOnRiser(pattern.rows[ri])) {
+        ri++;
+        continue;
+      }
+      var riStart = ri;
+      while (ri < pattern.rows.length && rowOnRiser(pattern.rows[ri])) ri++;
+      var riEnd = ri - 1;
+      var riTop = padding + titleH + riStart * (cellH + gapY) - RISER_PAD;
+      var riBottom = padding + titleH + riEnd * (cellH + gapY) + cellH + RISER_PAD;
+
+      ctx.fillStyle = RISER_COLOR;
+      ctx.strokeStyle = RISER_BORDER;
+      ctx.lineWidth = 1;
+      roundRect(ctx, riserLeft, riTop, riserWidth, riBottom - riTop, 8);
+      ctx.fill();
+      ctx.stroke();
+    }
 
     pattern.rows.forEach(function (row, r) {
       var y = padding + titleH + r * (cellH + gapY);

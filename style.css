@@ -353,7 +353,20 @@ svg {
   margin-bottom: 14px;
 }
 
+@media (min-width: 900px) {
+  .gridWrap {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+  }
+}
+
 .gridRows {
+  position: relative;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -363,7 +376,33 @@ svg {
   margin: 0 auto;
 }
 
+.riserBg {
+  position: absolute;
+  z-index: -1;
+  background: #d9c7a8;
+  border: 1px solid #b3987a;
+  border-radius: 8px;
+}
+
 .row {
+  display: flex;
+  align-items: center;
+}
+
+.rowNameLabel {
+  flex: 0 0 auto;
+  min-width: 44px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: right;
+  margin-right: 6px;
+}
+
+.cellsWrap {
   display: flex;
   gap: 8px;
   align-items: center;
@@ -456,6 +495,21 @@ svg {
   display: none;
 }
 
+.partTotalSummary {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0 0 10px;
+}
+
+.partTotalSummary[hidden] {
+  display: none;
+}
+
+.partTotalSummary.mismatch {
+  color: #c0392b;
+  font-weight: 600;
+}
+
 .partCountItem {
   display: flex;
   align-items: center;
@@ -498,19 +552,19 @@ svg {
 
 .rowItem {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rowItemTop {
+  display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.rowItem .rowLabel {
-  width: 52px;
-  flex: 0 0 auto;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.rowItem input[type="text"] {
-  flex: 1 1 auto;
+.rowItemTop input[type="text"] {
   min-width: 0;
   padding: 8px;
   border: 1px solid var(--border);
@@ -520,10 +574,35 @@ svg {
   font-size: 0.95rem;
 }
 
+.rowItemTop .rowNameInput {
+  flex: 0 0 114px;
+  width: 114px;
+}
+
+.rowItemTop .rowSpecInput {
+  flex: 1 1 auto;
+}
+
+.riserToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding-left: 2px;
+}
+
 .rowItem .btn.remove {
   flex: 0 0 auto;
-  padding: 8px 10px;
+  width: 36px;
+  height: 36px;
   min-height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0392b;
+  border-color: #c0392b;
 }
 
 .conductorToggle {

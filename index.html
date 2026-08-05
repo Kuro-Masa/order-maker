@@ -47,6 +47,7 @@
         </div>
         <p id="partNoneNote" class="rowsEditorNote" hidden>パート分けを使わない場合、色塗りモードで自由に色を選べます。</p>
         <div id="partCountsList" class="partCountsList"></div>
+        <p id="partTotalSummary" class="partTotalSummary"></p>
         <button id="autoColorBtn" class="btn primary">人数に応じて自動で色分け</button>
       </div>
     </div>
@@ -55,14 +56,15 @@
   <details class="accordion">
     <summary>
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" class="accordionIcon"><path d="M4 6h16M4 12h10M4 18h6" stroke-width="2" stroke-linecap="round"/></svg>
-      行の設定
+      配置する枠の設定
       <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" class="chevron"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </summary>
     <div class="accordionBody">
       <div class="rowsEditor">
-        <p class="rowsEditorNote">行ごとのマス数。例: 「8」で8マス連続、「5,5」で5マス+すき間(既定0.25マス分)+5マス、「5,g2,5」ですき間をマス2個分に指定(小数も可)</p>
+        <p class="rowsEditorNote">横列ごとに人数を設定してください。例: 「8」で8人、「5,5」で5人+すき間(既定0.25マス分)+5人、「5,E2,5」ですき間をマス2個分に指定(小数も可)</p>
         <div id="rowsList" class="rowsList"></div>
         <button id="addRowBtn" class="btn">＋ 行を追加</button>
+        <p id="cellTotalSummary" class="partTotalSummary"></p>
         <label class="conductorToggle">
           <input type="checkbox" id="showConductorCheckbox" checked>
           一番下の中央に指揮者マークを表示
