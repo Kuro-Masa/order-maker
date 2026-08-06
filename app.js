@@ -490,17 +490,59 @@
       centerLine.style.left = center + "px";
       centerLine.style.top = top + "px";
       centerLine.style.height = bottom - top + "px";
+      centerLine.appendChild(document.createElement("div")).className = "lineStrip";
       el.grid.appendChild(centerLine);
     }
 
     ensureLines(pattern).forEach(function (line) {
       var lineEl = document.createElement("div");
-      lineEl.className = "guideLine guideLineV";
+      lineEl.className = "guideLine guideLineV" + (mode === "line" ? " draggable" : "");
       lineEl.style.left = center + line.pos + "px";
       lineEl.style.top = top + "px";
       lineEl.style.height = bottom - top + "px";
+      lineEl.appendChild(document.createElement("div")).className = "lineStrip";
+
+      if (mode === "line") {
+        makeLineDraggable(lineEl, line, center);
+      }
+
       el.grid.appendChild(lineEl);
     });
+  }
+
+  function makeLineDraggable(lineEl, line, center) {
+    var dragging = false;
+    var startClientX = 0;
+    var startPos = 0;
+
+    lineEl.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+
+    lineEl.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dragging = true;
+      startClientX = e.clientX;
+      startPos = line.pos;
+      lineEl.setPointerCapture(e.pointerId);
+    });
+
+    lineEl.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      line.pos = startPos + (e.clientX - startClientX);
+      lineEl.style.left = center + line.pos + "px";
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      line.pos = Math.round(line.pos);
+      saveState();
+      renderLinesList();
+    }
+    lineEl.addEventListener("pointerup", endDrag);
+    lineEl.addEventListener("pointercancel", endDrag);
   }
 
   var CELL_MAX_LENGTH = 10;
@@ -887,7 +929,7 @@
     } else if (mode === "paint") {
       el.hint.textContent = "色を選んでからマスをタップすると塗れます";
     } else if (mode === "line") {
-      el.hint.textContent = "プレビューをタップすると縦線を追加できます(位置や削除は下の一覧で調整できます)";
+      el.hint.textContent = "空いている場所をタップすると縦線を追加、既存の線はドラッグで移動できます(削除は下の一覧で)";
     } else {
       el.hint.textContent = "マスをタップして名前を入力してください";
     }

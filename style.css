@@ -392,14 +392,26 @@ svg {
 }
 
 .guideLineV {
-  width: 2px;
-  background: #d98c3c;
-  margin-left: -1px;
+  width: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
 }
 
-.guideLineV.centerLine {
+.guideLineV .lineStrip {
   width: 2px;
+  height: 100%;
+  background: #d98c3c;
+}
+
+.guideLineV.centerLine .lineStrip {
   background: #333;
+}
+
+.guideLineV.draggable {
+  pointer-events: auto;
+  cursor: ew-resize;
+  touch-action: none;
 }
 
 .row {
