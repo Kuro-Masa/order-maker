@@ -19,9 +19,14 @@
       <div id="menuPanel" class="menuPanel" hidden>
         <button id="renamePatternBtn" class="menuItem">名前を変更</button>
         <button id="clearBtn" class="menuItem">名前を全消去</button>
+        <button id="exportCsvBtn" class="menuItem">CSV書き出し(名前のみ)</button>
         <label class="menuItem file-btn">
-          CSV読み込み
+          CSV読み込み(名前のみ)
           <input type="file" id="importCsvInput" accept=".csv" hidden>
+        </label>
+        <label class="menuItem file-btn">
+          JSON読み込み(全設定)
+          <input type="file" id="importJsonInput" accept=".json" hidden>
         </label>
         <button id="deletePatternBtn" class="menuItem danger">このパターンを削除</button>
       </div>
@@ -89,9 +94,9 @@
       </button>
     </div>
     <div class="toolbarSpacer"></div>
-    <button id="exportCsvBtn" class="iconBtn" aria-label="CSV書き出し">
+    <button id="exportJsonBtn" class="iconBtn" aria-label="JSON書き出し">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>CSV</span>
+      <span>JSON</span>
     </button>
     <button id="exportImageBtn" class="iconBtn" aria-label="画像で保存">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8"/><circle cx="9" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-5 5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>

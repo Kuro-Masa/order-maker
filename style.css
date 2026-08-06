@@ -371,7 +371,7 @@ svg {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 4px 44px 4px 4px;
+  padding: 4px 22px 4px 4px;
   width: max-content;
   margin: 0 auto;
 }
@@ -404,13 +404,13 @@ svg {
 
 .cellsWrap {
   display: flex;
-  gap: 8px;
+  gap: 2px;
   align-items: center;
 }
 
 .row.offset,
 .conductorMark.offset {
-  transform: translateX(44px);
+  transform: translateX(22px);
 }
 
 .segmentGap {
@@ -419,23 +419,22 @@ svg {
 }
 
 .cell {
-  width: 88px;
+  width: 44px;
   height: 52px;
-  min-width: 88px;
+  min-width: 44px;
   flex: 0 0 auto;
   border: 2px solid var(--border);
   border-radius: 10px;
   background: var(--cell-bg);
   color: var(--text);
-  font-size: 0.85rem;
+  font-family: inherit;
+  font-size: 0.68rem;
+  line-height: 1.15;
   text-align: center;
-  padding: 2px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
+  padding: 3px 2px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  resize: none;
 }
 
 .cell:focus {

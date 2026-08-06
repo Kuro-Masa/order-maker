@@ -45,9 +45,9 @@
   var DEFAULT_ROW_COUNT = 4;
   var DEFAULT_COL_COUNT = 6;
   var DEFAULT_GAP_CELLS = 0.25;
-  var CELL_W = 88;
+  var CELL_W = 44;
   var CELL_H = 52;
-  var GAP_X = 8;
+  var GAP_X = 2;
   var GAP_Y = 10;
   var GRID_PAD_LEFT = 4;
   var RISER_PAD = 8;
@@ -76,6 +76,8 @@
     clearBtn: document.getElementById("clearBtn"),
     exportCsvBtn: document.getElementById("exportCsvBtn"),
     importCsvInput: document.getElementById("importCsvInput"),
+    exportJsonBtn: document.getElementById("exportJsonBtn"),
+    importJsonInput: document.getElementById("importJsonInput"),
     exportImageBtn: document.getElementById("exportImageBtn"),
     grid: document.getElementById("grid"),
     palette: document.getElementById("palette"),
@@ -447,13 +449,13 @@
 
   function createCellEl(row, r, c) {
     var cellData = row.cells[c];
-    var input = document.createElement("input");
-    input.type = "text";
+    var input = document.createElement("textarea");
     input.className = "cell";
     input.value = cellData.name;
     input.maxLength = 10;
     input.autocomplete = "off";
     input.spellcheck = false;
+    input.rows = 1;
     if (cellData.color) {
       input.style.background = cellData.color;
       input.style.color = CELL_TEXT_COLOR;
@@ -461,6 +463,9 @@
 
     if (mode === "edit") {
       input.readOnly = false;
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") e.preventDefault();
+      });
       input.addEventListener("input", function () {
         cellData.name = input.value;
         saveState();
@@ -898,6 +903,113 @@
     reader.readAsText(file);
   }
 
+  function exportJson() {
+    var pattern = getActivePattern();
+    var data = {
+      type: "order-maker-pattern",
+      version: 1,
+      name: pattern.name,
+      showConductor: showsConductor(pattern),
+      partSettings: ensurePartSettings(pattern),
+      rows: pattern.rows.map(function (row) {
+        return {
+          name: row.name || "",
+          segments: row.segments,
+          gaps: row.gaps,
+          onRiser: !!row.onRiser,
+          cells: row.cells
+        };
+      })
+    };
+    var json = JSON.stringify(data, null, 2);
+    var blob = new Blob([json], { type: "application/json;charset=utf-8;" });
+    downloadBlob(blob, fileBaseName(pattern.name) + ".json");
+  }
+
+  function normalizePatternFromJson(data) {
+    var rows = Array.isArray(data.rows) && data.rows.length > 0
+      ? data.rows.map(function (r) {
+          var segments = Array.isArray(r.segments)
+            ? r.segments.map(Number).filter(function (n) {
+                return Number.isFinite(n) && n > 0;
+              })
+            : [];
+          if (segments.length === 0) segments = [1];
+
+          var gaps = Array.isArray(r.gaps)
+            ? r.gaps.slice(0, segments.length - 1).map(function (n) {
+                var num = Number(n);
+                return Number.isFinite(num) && num >= 0 ? num : DEFAULT_GAP_CELLS;
+              })
+            : [];
+          while (gaps.length < segments.length - 1) gaps.push(DEFAULT_GAP_CELLS);
+
+          var total = segmentsTotal(segments);
+          var cells = [];
+          for (var i = 0; i < total; i++) {
+            var c = (Array.isArray(r.cells) && r.cells[i]) || {};
+            cells.push({
+              name: typeof c.name === "string" ? c.name : "",
+              color: typeof c.color === "string" ? c.color : null
+            });
+          }
+
+          return {
+            name: typeof r.name === "string" ? r.name : "",
+            segments: segments,
+            gaps: gaps,
+            cells: cells,
+            onRiser: !!r.onRiser
+          };
+        })
+      : [createRow([DEFAULT_COL_COUNT])];
+
+    var scheme =
+      data.partSettings && (PART_SCHEMES[data.partSettings.scheme] || data.partSettings.scheme === "none")
+        ? data.partSettings.scheme
+        : "4";
+    var counts =
+      data.partSettings && data.partSettings.counts && typeof data.partSettings.counts === "object"
+        ? data.partSettings.counts
+        : {};
+
+    return {
+      name: typeof data.name === "string" ? data.name : "",
+      rows: rows,
+      partSettings: { scheme: scheme, counts: counts },
+      showConductor: data.showConductor !== false
+    };
+  }
+
+  function importJsonFile(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var data;
+      try {
+        data = JSON.parse(String(reader.result));
+      } catch (e) {
+        alert("JSONの読み込みに失敗しました");
+        return;
+      }
+      if (!data || typeof data !== "object" || !Array.isArray(data.rows)) {
+        alert("正しいJSONファイルではないようです");
+        return;
+      }
+      if (!confirm("現在のパターンの内容(名前・色・すき間・段の設定など)をすべて上書きします。よろしいですか?")) return;
+
+      var normalized = normalizePatternFromJson(data);
+      var pattern = getActivePattern();
+      if (normalized.name) pattern.name = normalized.name;
+      pattern.rows = normalized.rows;
+      pattern.partSettings = normalized.partSettings;
+      pattern.showConductor = normalized.showConductor;
+      selected = null;
+      saveState();
+      render();
+    };
+    reader.readAsText(file);
+  }
+
   function downloadBlob(blob, filename) {
     if (navigator.canShare && typeof File !== "undefined") {
       try {
@@ -948,7 +1060,7 @@
     var cellH = CELL_H;
     var gapX = GAP_X;
     var gapY = GAP_Y;
-    var offsetShift = 44;
+    var offsetShift = CELL_W / 2;
     var padding = 24;
     var titleH = 40;
     var markH = 44;
@@ -1097,7 +1209,11 @@
     closeMenu();
     clearAllNames();
   });
-  el.exportCsvBtn.addEventListener("click", exportCsv);
+  el.exportCsvBtn.addEventListener("click", function () {
+    closeMenu();
+    exportCsv();
+  });
+  el.exportJsonBtn.addEventListener("click", exportJson);
   el.exportImageBtn.addEventListener("click", exportImage);
   el.deletePatternBtn.addEventListener("click", function () {
     closeMenu();
@@ -1160,6 +1276,15 @@
       importCsvFile(file);
     }
     el.importCsvInput.value = "";
+  });
+
+  el.importJsonInput.addEventListener("change", function () {
+    closeMenu();
+    var file = el.importJsonInput.files[0];
+    if (file) {
+      importJsonFile(file);
+    }
+    el.importJsonInput.value = "";
   });
 
   // ---- init ----
