@@ -78,6 +78,24 @@
     </div>
   </details>
 
+  <details class="accordion">
+    <summary>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" class="accordionIcon"><path d="M8 4v16M16 4v16" stroke-width="1.8" stroke-linecap="round"/></svg>
+      線の設定
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" class="chevron"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="accordionBody">
+      <div class="rowsEditor">
+        <p class="rowsEditorNote">ツールバーの「線」モードでプレビューをタップすると縦線を追加できます。位置の微調整や削除はここで行えます。</p>
+        <label class="conductorToggle">
+          <input type="checkbox" id="showCenterLineCheckbox">
+          中心に線を表示
+        </label>
+        <div id="linesList" class="linesList"></div>
+      </div>
+    </div>
+  </details>
+
   <section class="toolbar">
     <div class="modeGroup">
       <button id="modeEditBtn" class="iconBtn mode-option" aria-label="編集モード">
@@ -92,6 +110,10 @@
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 21a8 8 0 1 1 0-16c4 0 7 2.5 7 6 0 2-1.5 3-3 3h-2a1.5 1.5 0 0 0 0 3h.5a1.5 1.5 0 0 1 0 3c-.8.3-1.6.5-2.5.5z" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14" cy="7" r="1"/></svg>
         <span>色塗り</span>
       </button>
+      <button id="modeLineBtn" class="iconBtn mode-option" aria-label="線モード">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 4v16M16 4v16" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>線</span>
+      </button>
     </div>
     <div class="toolbarSpacer"></div>
     <button id="exportJsonBtn" class="iconBtn" aria-label="JSON書き出し">
@@ -105,6 +127,7 @@
   </section>
 
   <div id="palette" class="palette" hidden></div>
+
 
   <p id="hint" class="hint"></p>
 

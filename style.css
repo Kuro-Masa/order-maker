@@ -281,7 +281,8 @@ svg {
   padding: 6px 8px;
 }
 
-.iconBtn.mode-option.active {
+.iconBtn.mode-option.active,
+.btn.mode-option.active {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-text);
@@ -382,6 +383,23 @@ svg {
   background: #d9c7a8;
   border: 1px solid #b3987a;
   border-radius: 8px;
+}
+
+.guideLine {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.guideLineV {
+  width: 2px;
+  background: #d98c3c;
+  margin-left: -1px;
+}
+
+.guideLineV.centerLine {
+  width: 2px;
+  background: #333;
 }
 
 .row {
@@ -574,6 +592,38 @@ svg {
   font-size: 0.8rem;
   color: var(--muted);
   padding-left: 2px;
+}
+
+.linesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.lineItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineItem .lineTypeLabel {
+  flex: 0 0 auto;
+  width: 46px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.lineItem input[type="number"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
 }
 
 .rowItem .btn.remove {

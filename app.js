@@ -53,13 +53,15 @@
   var RISER_PAD = 8;
   var RISER_COLOR = "#d9c7a8";
   var RISER_BORDER = "#b3987a";
+  var LINE_COLOR = "#d98c3c";
+  var CENTER_LINE_COLOR = "#333333";
 
   var state = {
     patterns: [], // [{ id, name, rows: [{ segments: [n,...], gaps: [cellUnits,...], cells: [{name, color}, ...] }] }]
     activeId: null
   };
 
-  var mode = "edit"; // "edit" | "swap" | "paint"
+  var mode = "edit"; // "edit" | "swap" | "paint" | "line"
   var selected = null; // { r, c } flat cell index within row.cells
   var currentColor = PALETTE[0];
   var nextPatternNum = 1;
@@ -73,6 +75,9 @@
     modeEditBtn: document.getElementById("modeEditBtn"),
     modeSwapBtn: document.getElementById("modeSwapBtn"),
     modePaintBtn: document.getElementById("modePaintBtn"),
+    modeLineBtn: document.getElementById("modeLineBtn"),
+    showCenterLineCheckbox: document.getElementById("showCenterLineCheckbox"),
+    linesList: document.getElementById("linesList"),
     clearBtn: document.getElementById("clearBtn"),
     exportCsvBtn: document.getElementById("exportCsvBtn"),
     importCsvInput: document.getElementById("importCsvInput"),
@@ -154,11 +159,32 @@
     for (var i = 0; i < rowCount; i++) {
       rows.push(createRow([colCount]));
     }
-    return { id: makeId(), name: name, rows: rows, partSettings: { scheme: "4", counts: {} }, showConductor: true };
+    return {
+      id: makeId(),
+      name: name,
+      rows: rows,
+      partSettings: { scheme: "4", counts: {} },
+      showConductor: true,
+      showCenterLine: false,
+      lines: []
+    };
   }
 
   function showsConductor(pattern) {
     return pattern.showConductor !== false;
+  }
+
+  function showsCenterLine(pattern) {
+    return !!pattern.showCenterLine;
+  }
+
+  function ensureLines(pattern) {
+    if (!Array.isArray(pattern.lines)) pattern.lines = [];
+    return pattern.lines;
+  }
+
+  function makeLineId() {
+    return "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   }
 
   function ensurePartSettings(pattern) {
@@ -324,8 +350,10 @@
     renderGrid();
     renderPalette();
     renderRowsList();
+    renderLinesList();
     renderPartSettings();
     el.showConductorCheckbox.checked = showsConductor(getActivePattern());
+    el.showCenterLineCheckbox.checked = showsCenterLine(getActivePattern());
     updateHint();
     updateModeButtons();
   }
@@ -395,6 +423,7 @@
     }
 
     renderRiserBackgrounds(pattern, cellsWraps);
+    renderLines(pattern, cellsWraps);
   }
 
   function renderRiserBackgrounds(pattern, cellsWraps) {
@@ -438,7 +467,45 @@
     }
   }
 
+  function renderLines(pattern, cellsWraps) {
+    if (cellsWraps.length === 0) return;
+    var gridRect = el.grid.getBoundingClientRect();
+
+    // Align to the same center the conductor mark uses (row 0's unshifted
+    // center, shifted to match the last row's parity), not the riser
+    // background's full-extent span, so the two visually coincide.
+    var row0Rect = cellsWraps[0].getBoundingClientRect();
+    var row0Center = (row0Rect.left + row0Rect.right) / 2 - gridRect.left;
+    var lastRowIsOffset = (pattern.rows.length - 1) % 2 === 1;
+    var center = row0Center + (lastRowIsOffset ? CELL_W / 2 : 0);
+
+    var firstRect = cellsWraps[0].getBoundingClientRect();
+    var lastRect = cellsWraps[cellsWraps.length - 1].getBoundingClientRect();
+    var top = firstRect.top - gridRect.top;
+    var bottom = lastRect.bottom - gridRect.top;
+
+    if (showsCenterLine(pattern)) {
+      var centerLine = document.createElement("div");
+      centerLine.className = "guideLine guideLineV centerLine";
+      centerLine.style.left = center + "px";
+      centerLine.style.top = top + "px";
+      centerLine.style.height = bottom - top + "px";
+      el.grid.appendChild(centerLine);
+    }
+
+    ensureLines(pattern).forEach(function (line) {
+      var lineEl = document.createElement("div");
+      lineEl.className = "guideLine guideLineV";
+      lineEl.style.left = center + line.pos + "px";
+      lineEl.style.top = top + "px";
+      lineEl.style.height = bottom - top + "px";
+      el.grid.appendChild(lineEl);
+    });
+  }
+
   var CELL_MAX_LENGTH = 10;
+  var TRASH_ICON_SVG =
+    '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function createCellEl(row, r, c) {
     var cellData = row.cells[c];
@@ -493,6 +560,9 @@
         saveState();
         renderGrid();
       });
+    } else if (mode === "line") {
+      input.contentEditable = "false";
+      input.classList.add("readonly-mode");
     }
 
     return input;
@@ -606,8 +676,7 @@
       removeBtn.className = "btn remove";
       removeBtn.setAttribute("aria-label", "この行を削除");
       removeBtn.title = "この行を削除";
-      removeBtn.innerHTML =
-        '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      removeBtn.innerHTML = TRASH_ICON_SVG;
       removeBtn.addEventListener("click", function () {
         pattern.rows.splice(r, 1);
         selected = null;
@@ -633,6 +702,47 @@
       item.appendChild(topRow);
       item.appendChild(riserToggle);
       el.rowsList.appendChild(item);
+    });
+  }
+
+  function renderLinesList() {
+    var pattern = getActivePattern();
+    var lines = ensureLines(pattern);
+    el.linesList.innerHTML = "";
+
+    lines.forEach(function (line, i) {
+      var item = document.createElement("div");
+      item.className = "lineItem";
+
+      var label = document.createElement("span");
+      label.className = "lineTypeLabel";
+      label.textContent = "縦線";
+
+      var posInput = document.createElement("input");
+      posInput.type = "number";
+      posInput.value = Math.round(line.pos);
+      posInput.addEventListener("input", function () {
+        line.pos = parseFloat(posInput.value) || 0;
+        saveState();
+        renderGrid();
+      });
+
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "btn remove";
+      removeBtn.setAttribute("aria-label", "この線を削除");
+      removeBtn.title = "この線を削除";
+      removeBtn.innerHTML = TRASH_ICON_SVG;
+      removeBtn.addEventListener("click", function () {
+        lines.splice(i, 1);
+        saveState();
+        render();
+      });
+
+      item.appendChild(label);
+      item.appendChild(posInput);
+      item.appendChild(removeBtn);
+      el.linesList.appendChild(item);
     });
   }
 
@@ -776,6 +886,8 @@
       el.hint.textContent = "入れ替えたい2つのマスを順にタップしてください";
     } else if (mode === "paint") {
       el.hint.textContent = "色を選んでからマスをタップすると塗れます";
+    } else if (mode === "line") {
+      el.hint.textContent = "プレビューをタップすると縦線を追加できます(位置や削除は下の一覧で調整できます)";
     } else {
       el.hint.textContent = "マスをタップして名前を入力してください";
     }
@@ -785,6 +897,7 @@
     el.modeEditBtn.classList.toggle("active", mode === "edit");
     el.modeSwapBtn.classList.toggle("active", mode === "swap");
     el.modePaintBtn.classList.toggle("active", mode === "paint");
+    el.modeLineBtn.classList.toggle("active", mode === "line");
   }
 
   function setMode(newMode) {
@@ -903,6 +1016,8 @@
       version: 1,
       name: pattern.name,
       showConductor: showsConductor(pattern),
+      showCenterLine: showsCenterLine(pattern),
+      lines: ensureLines(pattern),
       partSettings: ensurePartSettings(pattern),
       rows: pattern.rows.map(function (row) {
         return {
@@ -964,11 +1079,23 @@
         ? data.partSettings.counts
         : {};
 
+    var lines = Array.isArray(data.lines)
+      ? data.lines
+          .map(function (l) {
+            var pos = Number(l && l.pos);
+            if (!Number.isFinite(pos)) return null;
+            return { id: makeLineId(), pos: pos };
+          })
+          .filter(Boolean)
+      : [];
+
     return {
       name: typeof data.name === "string" ? data.name : "",
       rows: rows,
       partSettings: { scheme: scheme, counts: counts },
-      showConductor: data.showConductor !== false
+      showConductor: data.showConductor !== false,
+      showCenterLine: !!data.showCenterLine,
+      lines: lines
     };
   }
 
@@ -994,6 +1121,8 @@
       pattern.rows = normalized.rows;
       pattern.partSettings = normalized.partSettings;
       pattern.showConductor = normalized.showConductor;
+      pattern.showCenterLine = normalized.showCenterLine;
+      pattern.lines = normalized.lines;
       selected = null;
       saveState();
       render();
@@ -1133,6 +1262,34 @@
       });
     });
 
+    var linesTop = padding + titleH;
+    var linesBottom =
+      padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY;
+    // Align to the same center the conductor mark uses (row 0's unshifted
+    // center, shifted to match the last row's parity), not the riser
+    // background's full-extent span, so the two visually coincide.
+    var linesLastRowIsOffset = (pattern.rows.length - 1) % 2 === 1;
+    var linesCenter = padding + maxRowWidth / 2 + (linesLastRowIsOffset ? offsetShift : 0);
+
+    if (showsCenterLine(pattern)) {
+      ctx.strokeStyle = CENTER_LINE_COLOR;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(linesCenter, linesTop);
+      ctx.lineTo(linesCenter, linesBottom);
+      ctx.stroke();
+    }
+
+    ensureLines(pattern).forEach(function (line) {
+      var x = linesCenter + line.pos;
+      ctx.strokeStyle = LINE_COLOR;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, linesTop);
+      ctx.lineTo(x, linesBottom);
+      ctx.stroke();
+    });
+
     if (withConductor) {
       var markY =
         padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY + markGapY;
@@ -1194,6 +1351,37 @@
   });
   el.modePaintBtn.addEventListener("click", function () {
     setMode("paint");
+  });
+  el.modeLineBtn.addEventListener("click", function () {
+    setMode("line");
+  });
+
+  el.showCenterLineCheckbox.addEventListener("change", function () {
+    getActivePattern().showCenterLine = el.showCenterLineCheckbox.checked;
+    saveState();
+    renderGrid();
+  });
+
+  el.grid.addEventListener("click", function (e) {
+    if (mode !== "line") return;
+    var pattern = getActivePattern();
+    var cellsWraps = el.grid.querySelectorAll(".cellsWrap");
+    if (cellsWraps.length === 0) return;
+
+    var gridRect = el.grid.getBoundingClientRect();
+    var minLeft = Infinity;
+    var maxRight = -Infinity;
+    cellsWraps.forEach(function (w) {
+      var r = w.getBoundingClientRect();
+      minLeft = Math.min(minLeft, r.left - gridRect.left);
+      maxRight = Math.max(maxRight, r.right - gridRect.left);
+    });
+    var center = (minLeft + maxRight) / 2;
+    var clickX = e.clientX - gridRect.left;
+
+    ensureLines(pattern).push({ id: makeLineId(), pos: clickX - center });
+    saveState();
+    render();
   });
 
   el.clearBtn.addEventListener("click", function () {
