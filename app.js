@@ -447,31 +447,46 @@
     }
   }
 
+  var CELL_MAX_LENGTH = 10;
+
   function createCellEl(row, r, c) {
     var cellData = row.cells[c];
-    var input = document.createElement("textarea");
+    var input = document.createElement("div");
     input.className = "cell";
-    input.value = cellData.name;
-    input.maxLength = 10;
-    input.autocomplete = "off";
+    input.textContent = cellData.name;
     input.spellcheck = false;
-    input.rows = 1;
     if (cellData.color) {
       input.style.background = cellData.color;
       input.style.color = CELL_TEXT_COLOR;
     }
 
     if (mode === "edit") {
-      input.readOnly = false;
+      input.contentEditable = "true";
       input.addEventListener("keydown", function (e) {
         if (e.key === "Enter") e.preventDefault();
       });
+      input.addEventListener("paste", function (e) {
+        e.preventDefault();
+        var text = (e.clipboardData || window.clipboardData).getData("text/plain");
+        document.execCommand("insertText", false, text);
+      });
       input.addEventListener("input", function () {
-        cellData.name = input.value;
+        var text = input.textContent;
+        if (text.length > CELL_MAX_LENGTH) {
+          text = text.slice(0, CELL_MAX_LENGTH);
+          input.textContent = text;
+          var range = document.createRange();
+          range.selectNodeContents(input);
+          range.collapse(false);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        cellData.name = text;
         saveState();
       });
     } else if (mode === "swap") {
-      input.readOnly = true;
+      input.contentEditable = "false";
       input.classList.add("readonly-mode");
       if (selected && selected.r === r && selected.c === c) {
         input.classList.add("selected");
@@ -480,7 +495,7 @@
         onCellSwapClick(r, c);
       });
     } else if (mode === "paint") {
-      input.readOnly = true;
+      input.contentEditable = "false";
       input.classList.add("readonly-mode");
       input.addEventListener("click", function () {
         cellData.color = currentColor;

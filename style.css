@@ -432,9 +432,12 @@ svg {
   line-height: 1.15;
   text-align: center;
   padding: 3px 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   overflow-wrap: anywhere;
-  resize: none;
+  cursor: text;
 }
 
 .cell:focus {
