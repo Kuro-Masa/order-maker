@@ -389,19 +389,6 @@ svg {
   align-items: center;
 }
 
-.rowNameLabel {
-  flex: 0 0 auto;
-  min-width: 44px;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.8rem;
-  color: var(--muted);
-  text-align: right;
-  margin-right: 6px;
-}
-
 .cellsWrap {
   display: flex;
   gap: 2px;
@@ -574,11 +561,6 @@ svg {
   background: var(--bg);
   color: var(--text);
   font-size: 0.95rem;
-}
-
-.rowItemTop .rowNameInput {
-  flex: 0 0 114px;
-  width: 114px;
 }
 
 .rowItemTop .rowSpecInput {

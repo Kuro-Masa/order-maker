@@ -106,7 +106,7 @@
     return found || state.patterns[0];
   }
 
-  function createRow(segments, gaps, name) {
+  function createRow(segments, gaps) {
     var total = segmentsTotal(segments);
     var cells = [];
     for (var i = 0; i < total; i++) {
@@ -115,11 +115,7 @@
     var normalizedGaps = gaps ? gaps.slice() : segments.slice(1).map(function () {
       return DEFAULT_GAP_CELLS;
     });
-    return { segments: segments.slice(), gaps: normalizedGaps, cells: cells, name: name || "", onRiser: false };
-  }
-
-  function rowDisplayName(row, r) {
-    return row.name || "第" + (r + 1) + "行";
+    return { segments: segments.slice(), gaps: normalizedGaps, cells: cells, onRiser: false };
   }
 
   function rowOnRiser(row) {
@@ -365,11 +361,6 @@
       var rowDiv = document.createElement("div");
       rowDiv.className = "row" + (r % 2 === 1 ? " offset" : "");
 
-      var nameLabel = document.createElement("span");
-      nameLabel.className = "rowNameLabel";
-      nameLabel.textContent = rowDisplayName(row, r);
-      rowDiv.appendChild(nameLabel);
-
       var cellsWrap = document.createElement("div");
       cellsWrap.className = "cellsWrap";
 
@@ -597,18 +588,6 @@
       var topRow = document.createElement("div");
       topRow.className = "rowItemTop";
 
-      var nameInput = document.createElement("input");
-      nameInput.type = "text";
-      nameInput.className = "rowNameInput";
-      nameInput.value = row.name || "";
-      nameInput.placeholder = "第" + (r + 1) + "行";
-      nameInput.maxLength = 12;
-      nameInput.addEventListener("input", function () {
-        row.name = nameInput.value;
-        saveState();
-        renderGrid();
-      });
-
       var input = document.createElement("input");
       input.type = "text";
       input.className = "rowSpecInput";
@@ -649,7 +628,6 @@
       riserToggle.appendChild(riserCheckbox);
       riserToggle.appendChild(document.createTextNode("段に乗る(プレビューに背景を表示)"));
 
-      topRow.appendChild(nameInput);
       topRow.appendChild(input);
       topRow.appendChild(removeBtn);
       item.appendChild(topRow);
@@ -928,7 +906,6 @@
       partSettings: ensurePartSettings(pattern),
       rows: pattern.rows.map(function (row) {
         return {
-          name: row.name || "",
           segments: row.segments,
           gaps: row.gaps,
           onRiser: !!row.onRiser,
@@ -970,7 +947,6 @@
           }
 
           return {
-            name: typeof r.name === "string" ? r.name : "",
             segments: segments,
             gaps: gaps,
             cells: cells,
