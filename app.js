@@ -66,12 +66,29 @@
   var currentColor = PALETTE[0];
   var nextPatternNum = 1;
 
+  // Fill these in from Firebase Console > Project settings > Your apps (Web app)
+  // to enable share links. Until filled in, sharing features show a message instead.
+  var firebaseConfig = {
+    apiKey: "AIzaSyDlQrgeQXoDHlw9OlYM92Om5mnh9_qlwTY",
+    authDomain: "order-maker-e0b6c.firebaseapp.com",
+    projectId: "order-maker-e0b6c",
+    storageBucket: "order-maker-e0b6c.firebasestorage.app",
+    messagingSenderId: "347811601828",
+    appId: "1:347811601828:web:3cb7b4abd5c81b8535b531"
+  };
+  var db = null;
+  var shareUnsubscribe = null;
+  var shareListenerPatternId = null;
+  var shareWriteTimer = null;
+
   var el = {
     tabBar: document.getElementById("tabBar"),
     menuBtn: document.getElementById("menuBtn"),
     menuPanel: document.getElementById("menuPanel"),
     renamePatternBtn: document.getElementById("renamePatternBtn"),
     deletePatternBtn: document.getElementById("deletePatternBtn"),
+    shareBtn: document.getElementById("shareBtn"),
+    refreshShareBtn: document.getElementById("refreshShareBtn"),
     modeEditBtn: document.getElementById("modeEditBtn"),
     modeSwapBtn: document.getElementById("modeSwapBtn"),
     modePaintBtn: document.getElementById("modePaintBtn"),
@@ -166,7 +183,8 @@
       partSettings: { scheme: "4", counts: {} },
       showConductor: true,
       showCenterLine: false,
-      lines: []
+      lines: [],
+      shareId: null
     };
   }
 
@@ -223,10 +241,16 @@
     var idx = state.patterns.findIndex(function (p) {
       return p.id === state.activeId;
     });
+    var removedId = state.patterns[idx].id;
     state.patterns.splice(idx, 1);
     var next = state.patterns[Math.max(0, idx - 1)];
     state.activeId = next.id;
     selected = null;
+    if (shareListenerPatternId === removedId && shareUnsubscribe) {
+      shareUnsubscribe();
+      shareUnsubscribe = null;
+      shareListenerPatternId = null;
+    }
     saveState();
     render();
   }
@@ -237,6 +261,14 @@
     selected = null;
     saveState();
     render();
+    var pattern = getActivePattern();
+    if (pattern.shareId) {
+      ensureShareListener(pattern);
+    } else if (shareUnsubscribe) {
+      shareUnsubscribe();
+      shareUnsubscribe = null;
+      shareListenerPatternId = null;
+    }
   }
 
   function renameActivePattern() {
@@ -339,8 +371,14 @@
     }
   }
 
-  function saveState() {
+  function saveState(skipSharePush) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (!skipSharePush) {
+      var pattern = getActivePattern();
+      if (pattern && pattern.shareId) {
+        schedulePushShareUpdate(pattern);
+      }
+    }
   }
 
   // ---- rendering ----
@@ -1051,11 +1089,8 @@
     reader.readAsText(file);
   }
 
-  function exportJson() {
-    var pattern = getActivePattern();
-    var data = {
-      type: "order-maker-pattern",
-      version: 1,
+  function buildPatternData(pattern) {
+    return {
       name: pattern.name,
       showConductor: showsConductor(pattern),
       showCenterLine: showsCenterLine(pattern),
@@ -1070,6 +1105,13 @@
         };
       })
     };
+  }
+
+  function exportJson() {
+    var pattern = getActivePattern();
+    var data = buildPatternData(pattern);
+    data.type = "order-maker-pattern";
+    data.version = 1;
     var json = JSON.stringify(data, null, 2);
     var blob = new Blob([json], { type: "application/json;charset=utf-8;" });
     downloadBlob(blob, fileBaseName(pattern.name) + ".json");
@@ -1159,17 +1201,171 @@
 
       var normalized = normalizePatternFromJson(data);
       var pattern = getActivePattern();
-      if (normalized.name) pattern.name = normalized.name;
-      pattern.rows = normalized.rows;
-      pattern.partSettings = normalized.partSettings;
-      pattern.showConductor = normalized.showConductor;
-      pattern.showCenterLine = normalized.showCenterLine;
-      pattern.lines = normalized.lines;
+      applyNormalizedDataToPattern(pattern, normalized);
       selected = null;
       saveState();
       render();
     };
     reader.readAsText(file);
+  }
+
+  function applyNormalizedDataToPattern(pattern, normalized) {
+    if (normalized.name) pattern.name = normalized.name;
+    pattern.rows = normalized.rows;
+    pattern.partSettings = normalized.partSettings;
+    pattern.showConductor = normalized.showConductor;
+    pattern.showCenterLine = normalized.showCenterLine;
+    pattern.lines = normalized.lines;
+  }
+
+  // ---- sharing (Firebase Firestore realtime sync) ----
+
+  function firebaseReady() {
+    if (db) return true;
+    if (!firebaseConfig || firebaseConfig.apiKey === "YOUR_API_KEY") return false;
+    if (typeof firebase === "undefined") return false;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  function generateShareId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function shareDocRef(shareId) {
+    return db.collection("patterns").doc(shareId);
+  }
+
+  function buildShareUrl(shareId) {
+    var url = new URL(window.location.href);
+    url.searchParams.set("share", shareId);
+    return url;
+  }
+
+  function shareCurrentPattern() {
+    if (!firebaseReady()) {
+      alert("共有機能がまだ設定されていません(Firebaseの設定が必要です)。");
+      return;
+    }
+    var pattern = getActivePattern();
+    if (!pattern.shareId) pattern.shareId = generateShareId();
+    saveState(true);
+
+    var data = buildPatternData(pattern);
+    data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+
+    shareDocRef(pattern.shareId).set(data).then(function () {
+      ensureShareListener(pattern);
+      var url = buildShareUrl(pattern.shareId);
+      window.history.replaceState(null, "", url.toString());
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url.toString()).catch(function () {});
+      }
+      prompt("共有リンクをコピーしました。このリンクを開いた人は内容をリアルタイムで見たり編集したりできます:", url.toString());
+    }).catch(function (e) {
+      console.error(e);
+      alert("共有リンクの作成に失敗しました: " + e.message);
+    });
+  }
+
+  function applyRemoteSnapshotToPattern(pattern, data) {
+    var normalized = normalizePatternFromJson(data);
+    applyNormalizedDataToPattern(pattern, normalized);
+    selected = null;
+    saveState(true);
+    render();
+  }
+
+  function ensureShareListener(pattern) {
+    if (!firebaseReady() || !pattern.shareId) return;
+    if (shareListenerPatternId === pattern.id && shareUnsubscribe) return;
+    if (shareUnsubscribe) {
+      shareUnsubscribe();
+      shareUnsubscribe = null;
+    }
+    shareListenerPatternId = pattern.id;
+    shareUnsubscribe = shareDocRef(pattern.shareId).onSnapshot(function (snap) {
+      if (!snap.exists || snap.metadata.hasPendingWrites) return;
+      var current = getActivePattern();
+      if (!current || current.id !== pattern.id) return;
+      applyRemoteSnapshotToPattern(current, snap.data());
+    }, function (e) {
+      console.error(e);
+    });
+  }
+
+  function refreshShareFromServer() {
+    var pattern = getActivePattern();
+    if (!firebaseReady() || !pattern.shareId) {
+      alert("このパターンはまだ共有されていません。先に「共有リンクを作成/更新」を実行してください。");
+      return;
+    }
+    shareDocRef(pattern.shareId).get({ source: "server" }).then(function (snap) {
+      if (!snap.exists) {
+        alert("共有データが見つかりませんでした。");
+        return;
+      }
+      applyRemoteSnapshotToPattern(pattern, snap.data());
+    }).catch(function (e) {
+      console.error(e);
+      alert("取得に失敗しました: " + e.message);
+    });
+  }
+
+  function schedulePushShareUpdate(pattern) {
+    if (!firebaseReady() || !pattern.shareId) return;
+    if (shareWriteTimer) clearTimeout(shareWriteTimer);
+    shareWriteTimer = setTimeout(function () {
+      shareWriteTimer = null;
+      var data = buildPatternData(pattern);
+      data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+      shareDocRef(pattern.shareId).set(data).catch(function (e) {
+        console.error(e);
+      });
+    }, 800);
+  }
+
+  function loadSharedPatternFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var shareId = params.get("share");
+    if (!shareId || !firebaseReady()) return;
+
+    var existing = state.patterns.find(function (p) {
+      return p.shareId === shareId;
+    });
+    if (existing) {
+      state.activeId = existing.id;
+      saveState(true);
+      render();
+      ensureShareListener(existing);
+      return;
+    }
+
+    shareDocRef(shareId).get().then(function (snap) {
+      if (!snap.exists) {
+        alert("指定された共有データが見つかりませんでした。");
+        return;
+      }
+      var data = snap.data();
+      var normalized = normalizePatternFromJson(data);
+      var pattern = createPattern(normalized.name || "共有パターン", 1, 1);
+      applyNormalizedDataToPattern(pattern, normalized);
+      pattern.shareId = shareId;
+      state.patterns.push(pattern);
+      state.activeId = pattern.id;
+      saveState(true);
+      render();
+      ensureShareListener(pattern);
+    }).catch(function (e) {
+      console.error(e);
+      alert("共有データの取得に失敗しました: " + e.message);
+    });
   }
 
   function downloadBlob(blob, filename) {
@@ -1430,6 +1626,14 @@
     closeMenu();
     clearAllNames();
   });
+  el.shareBtn.addEventListener("click", function () {
+    closeMenu();
+    shareCurrentPattern();
+  });
+  el.refreshShareBtn.addEventListener("click", function () {
+    closeMenu();
+    refreshShareFromServer();
+  });
   el.exportCsvBtn.addEventListener("click", function () {
     closeMenu();
     exportCsv();
@@ -1518,4 +1722,5 @@
     saveState();
   }
   render();
+  loadSharedPatternFromUrl();
 })();
