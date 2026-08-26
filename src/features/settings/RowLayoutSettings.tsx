@@ -1,59 +1,144 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import { RowsAccordionIcon, TrashIcon } from "../../icons";
-import { computeTotals, rowOnRiser, serializeRowSpec, showsConductor } from "../../state/patternHelpers";
+import { computeTotals, rowOnRiser, showsConductor } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 import { Accordion } from "./Accordion";
 
 function RowEditorItem({
   row,
+  rowIndex,
   onSpecChange,
   onRemove,
   onRiserToggle,
   onShiftChange,
 }: {
   row: RowData;
+  rowIndex: number;
   onSpecChange: (spec: string) => void;
   onRemove: () => void;
   onRiserToggle: (checked: boolean) => void;
   onShiftChange: (shift: number) => void;
 }) {
-  const [text, setText] = useState(serializeRowSpec(row));
+  const isMulti = row.segments.length >= 2;
+  const [hasGap, setHasGap] = useState(isMulti);
+  const [count, setCount] = useState(String(row.segments[0] ?? 0));
+  const [leftCount, setLeftCount] = useState(String(row.segments[0] ?? 0));
+  const [rightCount, setRightCount] = useState(String(row.segments[row.segments.length - 1] ?? 0));
+  const [gapSize, setGapSize] = useState(String(row.gaps?.[0] ?? 4));
 
   useEffect(() => {
-    setText(serializeRowSpec(row));
+    const multi = row.segments.length >= 2;
+    setHasGap(multi);
+    if (multi) {
+      setLeftCount(String(row.segments[0]));
+      setRightCount(String(row.segments[row.segments.length - 1]));
+      setGapSize(String(row.gaps?.[0] ?? 4));
+    } else {
+      setCount(String(row.segments[0] ?? 0));
+    }
   }, [row]);
 
-  function commit() {
-    onSpecChange(text);
+  function commitSingle(val: string) {
+    const n = parseInt(val) || 0;
+    onSpecChange(String(n));
   }
 
-  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+  function commitGap(l: string, g: string, r: string) {
+    const ln = parseInt(l) || 0;
+    const rn = parseInt(r) || 0;
+    const gn = parseFloat(g) || 1;
+    onSpecChange(`${ln},E${gn},${rn}`);
+  }
+
+  function toggleGap(on: boolean) {
+    setHasGap(on);
+    if (on) {
+      const n = parseInt(count) || 0;
+      const l = Math.floor(n / 2);
+      const r = n - l;
+      const g = "4";
+      setLeftCount(String(l));
+      setRightCount(String(r));
+      setGapSize(g);
+      onSpecChange(`${l},E${g},${r}`);
+    } else {
+      const total = (parseInt(leftCount) || 0) + (parseInt(rightCount) || 0);
+      const s = String(total);
+      setCount(s);
+      onSpecChange(s);
+    }
   }
 
   return (
     <div className="rowItem">
-      <div className="rowItemTop">
-        <input
-          type="text"
-          className="rowSpecInput"
-          inputMode="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={commit}
-          onKeyDown={handleKeyDown}
-        />
-        <button
-          type="button"
-          className="btn remove"
-          aria-label="この行を削除"
-          title="この行を削除"
-          onClick={onRemove}
-        >
+      <div className="rowItemHeader">
+        <span className="rowIndexLabel">{rowIndex + 1}列目</span>
+        <button type="button" className="btn remove" aria-label="この行を削除" onClick={onRemove}>
           <TrashIcon />
         </button>
       </div>
+
+      {hasGap ? (
+        <div className="rowSpecGap">
+          <input
+            type="number"
+            className="rowSpecInput compact"
+            min={0}
+            inputMode="numeric"
+            value={leftCount}
+            onChange={(e) => setLeftCount(e.target.value)}
+            onBlur={() => commitGap(leftCount, gapSize, rightCount)}
+          />
+          <span className="rowSpecGapLabel">人 ← すき間 →</span>
+          <input
+            type="number"
+            className="rowSpecInput compact"
+            min={0}
+            inputMode="numeric"
+            value={rightCount}
+            onChange={(e) => setRightCount(e.target.value)}
+            onBlur={() => commitGap(leftCount, gapSize, rightCount)}
+          />
+          <span className="rowSpecGapLabel">人</span>
+        </div>
+      ) : (
+        <div className="rowSpecSingle">
+          <input
+            type="number"
+            className="rowSpecInput"
+            min={0}
+            inputMode="numeric"
+            value={count}
+            onChange={(e) => setCount(e.target.value)}
+            onBlur={() => commitSingle(count)}
+          />
+          <span className="rowSpecGapLabel">人</span>
+        </div>
+      )}
+
+      {hasGap && (
+        <div className="rowGapSizeRow">
+          <span className="rowSpecGapLabel">すき間の幅:</span>
+          <input
+            type="number"
+            className="rowSpecInput compact"
+            min={0}
+            step={0.25}
+            inputMode="decimal"
+            value={gapSize}
+            onChange={(e) => setGapSize(e.target.value)}
+            onBlur={() => commitGap(leftCount, gapSize, rightCount)}
+          />
+          <span className="rowSpecGapLabel">人分</span>
+        </div>
+      )}
+
+      <label className="gapToggle">
+        <input type="checkbox" checked={hasGap} onChange={(e) => toggleGap(e.target.checked)} />
+        左右に分けて間を開ける
+      </label>
+
       <label className="riserToggle">
         <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
         段に乗る(プレビューに背景を表示)
@@ -69,7 +154,8 @@ function RowEditorItem({
           >
             {v === -1 ? "←" : v === 0 ? "中央" : "→"}
           </button>
-        ))}</div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -81,14 +167,14 @@ export function RowSettingsContent() {
   return (
     <div className="rowsEditor">
       <p className="rowsEditorNote">
-        横列ごとの人数を設定できます。空けたい部分は「E」をつけてください。<br />
-        例: 「3,E4,3」で3人+すき間4人分+3人
+        横列ごとの人数を設定できます。「左右に分けて間を開ける」で左右に分割できます。
       </p>
       <div className="rowsList">
         {activePattern.rows.map((row, r) => (
           <RowEditorItem
             key={r}
             row={row}
+            rowIndex={r}
             onSpecChange={(spec) => updateRowSpec(r, spec)}
             onRemove={() => removeRow(r)}
             onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}

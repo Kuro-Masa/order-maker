@@ -662,18 +662,67 @@ svg {
   gap: 8px;
 }
 
-.rowItemTop input[type="text"] {
+.rowItemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rowIndexLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .03em;
+}
+
+.rowSpecSingle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rowSpecGap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.rowGapSizeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rowSpecGapLabel {
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.rowSpecInput {
   min-width: 0;
-  padding: 8px;
+  width: 72px;
+  padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
   font-size: 0.95rem;
+  text-align: center;
 }
 
-.rowItemTop .rowSpecInput {
-  flex: 1 1 auto;
+.rowSpecInput.compact {
+  width: 56px;
+}
+
+.gapToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
 }
 
 .riserToggle {
@@ -1313,7 +1362,7 @@ svg {
 }
 
 .panelContent {
-  padding: 12px 16px;
+  padding: 4px 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
