@@ -17,11 +17,26 @@ function Hint() {
   return <p className="hint">{text}</p>;
 }
 
+function ShareBanner() {
+  const { shareUrl, dismissShareUrl } = useApp();
+  if (!shareUrl) return null;
+  return (
+    <div className="shareBanner">
+      <span className="shareBannerLabel">共有リンク（クリップボードにコピー済み）:</span>
+      <a className="shareBannerUrl" href={shareUrl} target="_blank" rel="noopener noreferrer">
+        {shareUrl}
+      </a>
+      <button type="button" className="shareBannerClose" onClick={dismissShareUrl} aria-label="閉じる">✕</button>
+    </div>
+  );
+}
+
 function AppShell() {
   return (
     <div className="app">
       <h1 className="sr-only">オーダーメーカー</h1>
       <TopBar />
+      <ShareBanner />
       <PartColorSettings />
       <RowLayoutSettings />
       <LineSettings />

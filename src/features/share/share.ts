@@ -1,4 +1,4 @@
-import { initializeApp, type FirebaseApp } from "firebase/app";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import {
   doc,
   getDoc,
@@ -21,7 +21,7 @@ export function firebaseReady(): boolean {
   if (db) return true;
   if (!firebaseConfig || firebaseConfig.apiKey === "YOUR_API_KEY") return false;
   try {
-    app = initializeApp(firebaseConfig);
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     db = getFirestore(app);
     return true;
   } catch (e) {

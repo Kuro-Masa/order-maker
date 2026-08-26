@@ -34,6 +34,7 @@ export function useAppStore() {
   const [mode, setModeRaw] = useState<Mode>("edit");
   const [selected, setSelected] = useState<Selected | null>(null);
   const [currentColor, setCurrentColor] = useState<string | null>(PALETTE[0]);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   const stateRef = useRef(state);
   const shareUnsubRef = useRef<Unsubscribe | null>(null);
@@ -429,10 +430,7 @@ export function useAppStore() {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(url.toString()).catch(() => {});
       }
-      prompt(
-        "共有リンクをコピーしました。このリンクを開いた人は内容をリアルタイムで見たり編集したりできます:",
-        url.toString()
-      );
+      setShareUrl(url.toString());
     } catch (e) {
       console.error(e);
       alert("共有リンクの作成に失敗しました: " + (e as Error).message);
@@ -525,6 +523,8 @@ export function useAppStore() {
     exportCsvFile,
     importCsvFile,
     exportImageFile,
+    shareUrl,
+    dismissShareUrl: () => setShareUrl(null),
     shareCurrentPattern,
     refreshShareFromServer,
   };
