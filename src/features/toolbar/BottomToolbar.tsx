@@ -1,5 +1,4 @@
-import { type ChangeEvent } from "react";
-import { ImageIcon, JsonIcon, TrashIcon } from "../../icons";
+import { ImageIcon, TrashIcon } from "../../icons";
 import { getActivePalette, showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { RowSettingsContent } from "../settings/RowLayoutSettings";
@@ -171,26 +170,7 @@ function LinesPanel() {
 }
 
 function SharePanel() {
-  const {
-    exportJson,
-    exportImageFile,
-    importCsvFile,
-    importJsonFile,
-    shareCurrentPattern,
-    refreshShareFromServer,
-  } = useApp();
-
-  function handleCsvImport(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) importCsvFile(file);
-    e.target.value = "";
-  }
-
-  function handleJsonImport(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) importJsonFile(file);
-    e.target.value = "";
-  }
+  const { exportImageFile, shareCurrentPattern, refreshShareFromServer } = useApp();
 
   return (
     <div className="panelContent sharePanelContent">
@@ -198,18 +178,6 @@ function SharePanel() {
         <ImageIcon />
         PNG書き出し
       </button>
-      <button type="button" className="btn shareBtn" onClick={exportJson}>
-        <JsonIcon />
-        JSON書き出し
-      </button>
-      <label className="btn shareBtn file-btn">
-        CSV読み込み
-        <input type="file" accept=".csv" hidden onChange={handleCsvImport} />
-      </label>
-      <label className="btn shareBtn file-btn">
-        JSON読み込み
-        <input type="file" accept=".json" hidden onChange={handleJsonImport} />
-      </label>
       <button type="button" className="btn shareBtn primary" onClick={shareCurrentPattern}>
         共有リンクを作成/更新
       </button>

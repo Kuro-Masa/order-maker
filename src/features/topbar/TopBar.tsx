@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useApp } from "../../state/AppStoreContext";
-import { MenuPanel } from "./MenuPanel";
 
 function PatternNameInput() {
   const { activePattern, renamePattern } = useApp();
@@ -42,7 +41,6 @@ export function TopBar() {
         ← 一覧
       </button>
       <PatternNameInput />
-      <MenuPanel />
     </section>
   );
 }

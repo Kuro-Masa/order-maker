@@ -14,12 +14,9 @@ import {
 } from "./patternHelpers";
 import {
   applyNormalizedDataToPattern,
-  exportJsonData,
   normalizePatternFromJson,
 } from "../features/io/json";
-import { exportCsv as writeCsv, rowsFromCsv } from "../features/io/csv";
 import { exportImage as writeImage } from "../features/io/imageExport";
-import { downloadBlob, fileBaseName } from "../features/io/download";
 import {
   buildShareUrl,
   fetchPatternFromFirestore,
@@ -396,60 +393,6 @@ export function useAppStore() {
 
   // ---- export / import ----
 
-  function exportJson() {
-    if (!activePattern) return;
-    const data = exportJsonData(activePattern);
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
-    downloadBlob(blob, fileBaseName(activePattern.name) + ".json");
-  }
-
-  function importJsonFile(file: File) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      let data: PatternJson;
-      try {
-        data = JSON.parse(String(reader.result));
-      } catch {
-        alert("JSONの読み込みに失敗しました");
-        return;
-      }
-      if (!data || typeof data !== "object" || !Array.isArray(data.rows)) {
-        alert("正しいJSONファイルではないようです");
-        return;
-      }
-      if (
-        !confirm(
-          "現在のパターンの内容(名前・色・すき間・段の設定など)をすべて上書きします。よろしいですか?"
-        )
-      )
-        return;
-      const normalized = normalizePatternFromJson(data);
-      updateActivePattern((p) => {
-        const next = { ...p };
-        applyNormalizedDataToPattern(next, normalized);
-        return next;
-      });
-      setSelected(null);
-    };
-    reader.readAsText(file);
-  }
-
-  function exportCsvFile() {
-    if (!activePattern) return;
-    writeCsv(activePattern);
-  }
-
-  function importCsvFile(file: File) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const rows = rowsFromCsv(String(reader.result));
-      updateActivePattern((p) => ({ ...p, rows }));
-      setSelected(null);
-    };
-    reader.readAsText(file);
-  }
-
   function exportImageFile() {
     if (!activePattern) return;
     writeImage(activePattern);
@@ -617,10 +560,6 @@ export function useAppStore() {
     setCellName,
     onCellSwapClick,
     paintCell,
-    exportJson,
-    importJsonFile,
-    exportCsvFile,
-    importCsvFile,
     exportImageFile,
     shareUrl,
     dismissShareUrl: () => setShareUrl(null),
