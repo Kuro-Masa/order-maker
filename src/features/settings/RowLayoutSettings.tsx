@@ -60,10 +60,12 @@ function RowEditorItem({
         <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
         段に乗る(プレビューに背景を表示)
       </label>
-      <label className="riserToggle">
-        <input type="checkbox" checked={rowIsOffset(row, r)} onChange={(e) => onStaggerToggle(e.target.checked)} />
-        前列から半歩ずらす
-      </label>
+      {r > 0 && (
+        <label className="riserToggle">
+          <input type="checkbox" checked={rowIsOffset(row, r)} onChange={(e) => onStaggerToggle(e.target.checked)} />
+          前列から半歩ずらす
+        </label>
+      )}
     </div>
   );
 }
