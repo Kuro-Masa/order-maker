@@ -8,6 +8,7 @@ export interface RowData {
   gaps: number[];
   cells: CellData[];
   onRiser: boolean;
+  stagger?: boolean;
 }
 
 export interface LineData {

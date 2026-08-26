@@ -1,20 +1,24 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { RowsAccordionIcon, TrashIcon } from "../../icons";
-import { computeTotals, rowOnRiser, serializeRowSpec, showsConductor } from "../../state/patternHelpers";
+import { computeTotals, rowIsOffset, rowOnRiser, serializeRowSpec, showsConductor } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 import { Accordion } from "./Accordion";
 
 function RowEditorItem({
   row,
+  r,
   onSpecChange,
   onRemove,
   onRiserToggle,
+  onStaggerToggle,
 }: {
   row: RowData;
+  r: number;
   onSpecChange: (spec: string) => void;
   onRemove: () => void;
   onRiserToggle: (checked: boolean) => void;
+  onStaggerToggle: (checked: boolean) => void;
 }) {
   const [text, setText] = useState(serializeRowSpec(row));
 
@@ -56,12 +60,16 @@ function RowEditorItem({
         <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
         段に乗る(プレビューに背景を表示)
       </label>
+      <label className="riserToggle">
+        <input type="checkbox" checked={rowIsOffset(row, r)} onChange={(e) => onStaggerToggle(e.target.checked)} />
+        前列から半歩ずらす
+      </label>
     </div>
   );
 }
 
 export function RowLayoutSettings() {
-  const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, addRow, toggleConductor } = useApp();
+  const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, toggleRowStagger, addRow, toggleConductor } = useApp();
   const { cellsTotal, mismatch } = computeTotals(activePattern);
 
   return (
@@ -75,9 +83,11 @@ export function RowLayoutSettings() {
             <RowEditorItem
               key={r}
               row={row}
+              r={r}
               onSpecChange={(spec) => updateRowSpec(r, spec)}
               onRemove={() => removeRow(r)}
               onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}
+              onStaggerToggle={(checked) => toggleRowStagger(r, checked)}
             />
           ))}
         </div>

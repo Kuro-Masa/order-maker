@@ -1,5 +1,5 @@
 import { useRef, type MouseEvent } from "react";
-import { showsCenterLine, showsConductor } from "../../state/patternHelpers";
+import { rowIsOffset, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
 import { GuideLine } from "./GuideLine";
@@ -30,7 +30,8 @@ export function GridView() {
     addLine(clickX - center);
   }
 
-  const lastRowIsOffset = (activePattern.rows.length - 1) % 2 === 1;
+  const lastRow = activePattern.rows[activePattern.rows.length - 1];
+  const lastRowIsOffset = lastRow ? rowIsOffset(lastRow, activePattern.rows.length - 1) : false;
 
   return (
     <section className="gridWrap">

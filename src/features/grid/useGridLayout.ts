@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { CELL_W, RISER_PAD } from "../../constants";
-import { rowOnRiser } from "../../state/patternHelpers";
+import { rowIsOffset, rowOnRiser } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 
 export interface RiserRect {
@@ -82,7 +82,8 @@ export function useGridLayout(
     // background's full-extent span, so the two visually coincide.
     const row0Rect = wraps[0].getBoundingClientRect();
     const row0Center = (row0Rect.left + row0Rect.right) / 2 - gridRect.left;
-    const lastRowIsOffset = (pattern.rows.length - 1) % 2 === 1;
+    const lastRow = pattern.rows[pattern.rows.length - 1];
+    const lastRowIsOffset = lastRow ? rowIsOffset(lastRow, pattern.rows.length - 1) : false;
     const center = row0Center + (lastRowIsOffset ? CELL_W / 2 : 0);
 
     const firstRect = wraps[0].getBoundingClientRect();
