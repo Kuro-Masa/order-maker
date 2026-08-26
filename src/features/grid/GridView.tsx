@@ -11,7 +11,7 @@ export function GridView() {
   const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const cellsWrapRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const layout = useGridLayout(gridRef, cellsWrapRefs, activePattern);
+  const layout = useGridLayout(gridRef, cellsWrapRefs, activePattern, zoom);
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
