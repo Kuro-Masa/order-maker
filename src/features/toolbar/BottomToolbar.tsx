@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ImageIcon, TrashIcon } from "../../icons";
-import { getActivePalette, showsCenterLine } from "../../state/patternHelpers";
+import { showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { RowSettingsContent } from "../settings/RowLayoutSettings";
 import { PartColorSettingsContent } from "../settings/PartColorSettings";
@@ -100,30 +100,8 @@ function SortPanel() {
 }
 
 function PaintPanel() {
-  const { activePattern, currentColor, setCurrentColor } = useApp();
-  const activePalette = getActivePalette(activePattern);
   return (
     <div className="panelContent">
-      <div className="palette">
-        {activePalette.map((part, i) => (
-          <div className="swatchWrap" key={part.key ?? i}>
-            <button
-              type="button"
-              className={"swatch" + (currentColor === part.color ? " active" : "")}
-              style={{ background: part.color }}
-              title={part.key ?? undefined}
-              onClick={() => setCurrentColor(part.color)}
-            />
-            {part.key && <span className="swatchLabel">{part.key}</span>}
-          </div>
-        ))}
-        <button
-          type="button"
-          className={"swatch clear" + (currentColor === null ? " active" : "")}
-          title="色をクリア"
-          onClick={() => setCurrentColor(null)}
-        />
-      </div>
       <PartColorSettingsContent />
     </div>
   );

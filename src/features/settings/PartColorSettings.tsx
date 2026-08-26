@@ -21,9 +21,9 @@ export function PartColorSettingsContent() {
           onChange={(e) => setPartScheme(e.target.value)}
         >
           <option value="none">パート分けを使わない</option>
-          <option value="4">4色(Sop/Alt/Ten/Bas)</option>
-          <option value="6">6色(Sop/Mez/Alt/Ten/Bar/Bas)</option>
-          <option value="8">8色(Sop1/Sop2/Alt1/Alt2/Ten1/Ten2/Bas1/Bas2)</option>
+          <option value="4">4声</option>
+          <option value="6">6声</option>
+          <option value="8">8声</option>
         </select>
       </div>
       {isNone && (
