@@ -1281,11 +1281,28 @@ svg {
 }
 
 .panelResizeHandle {
-  height: 6px;
+  height: 20px;
   cursor: ns-resize;
   flex-shrink: 0;
   touch-action: none;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panelResizeHandle::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.15s;
+}
+
+.panelResizeHandle:hover::before {
+  background: var(--muted);
 }
 
 .panelContent {
