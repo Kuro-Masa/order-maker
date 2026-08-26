@@ -4,7 +4,8 @@ import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 
 export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
-  const { mode, selected, setCellName, onCellSwapClick, paintCell, currentColor, removeMember } = useApp();
+  const { mode, selected, setCellName, onCellSwapClick, paintCell, currentColor, removeMember, toolbarMode } = useApp();
+  const rowsMode = toolbarMode === "rows";
   const cellData = row.cells[c];
   const ref = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -37,8 +38,10 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
     style.color = CELL_TEXT_COLOR;
   }
 
+  const editable = mode === "edit" && !rowsMode;
+
   let className = "cell";
-  if (mode !== "edit") className += " readonly-mode";
+  if (!editable && mode !== "paint") className += " readonly-mode";
   if (mode === "swap" && selected && selected.r === r && selected.c === c) className += " selected";
   if (dragOver) className += " drag-over";
 
@@ -100,11 +103,11 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
       className={className}
       style={style}
       spellCheck={false}
-      contentEditable={mode === "edit"}
+      contentEditable={editable}
       suppressContentEditableWarning
-      onInput={mode === "edit" ? handleInput : undefined}
-      onPaste={mode === "edit" ? handlePaste : undefined}
-      onKeyDown={mode === "edit" ? handleKeyDown : undefined}
+      onInput={editable ? handleInput : undefined}
+      onPaste={editable ? handlePaste : undefined}
+      onKeyDown={editable ? handleKeyDown : undefined}
       onClick={mode === "swap" || mode === "paint" ? handleClick : undefined}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
