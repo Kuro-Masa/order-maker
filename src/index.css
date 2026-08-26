@@ -529,6 +529,8 @@ svg {
   align-items: center;
   border-radius: 8px;
   transition: box-shadow 0.14s;
+  position: relative;
+  z-index: 1;
 }
 
 .row.rowSelectable {
@@ -541,6 +543,7 @@ svg {
 
 .row.rowSelectedForEdit {
   box-shadow: 0 0 0 6px var(--accent);
+  z-index: 2;
 }
 
 .row.rowSelectable .cell {
@@ -971,6 +974,78 @@ svg {
   font-size: 0.85rem;
   color: var(--text);
   cursor: pointer;
+}
+
+/* Toggle switch */
+.toggleSwitch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleSwitch input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleTrack {
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--border, #ccc);
+  position: relative;
+  transition: background 0.18s;
+}
+
+.toggleTrack::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.18s;
+}
+
+.toggleSwitch input[type="checkbox"]:checked + .toggleTrack {
+  background: var(--accent, #3a6df0);
+}
+
+.toggleSwitch input[type="checkbox"]:checked + .toggleTrack::after {
+  transform: translateX(16px);
+}
+
+/* Gap inline layout */
+.rowGapInline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.rowGapArrow {
+  font-size: 0.8rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.rowGapMidLabel {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .riserToggle {

@@ -83,35 +83,42 @@ function RowEditorPanel({
 
       {/* Top row: count + shift + delete */}
       <div className="rowEditTopRow">
-        <div className="rowEditCounts">
-          {hasGap ? (
-            <>
-              <input
-                type="number" className="rowSpecInput compact" min={0} inputMode="numeric"
-                value={leftCount}
-                onChange={(e) => setLeftCount(e.target.value)}
-                onBlur={() => commitGap(leftCount, gapSize, rightCount)}
-              />
-              <span className="rowSpecGapLabel">←</span>
-              <input
-                type="number" className="rowSpecInput compact" min={0} inputMode="numeric"
-                value={rightCount}
-                onChange={(e) => setRightCount(e.target.value)}
-                onBlur={() => commitGap(leftCount, gapSize, rightCount)}
-              />
-            </>
-          ) : (
-            <>
-              <input
-                type="number" className="rowSpecInput" min={0} inputMode="numeric"
-                value={count}
-                onChange={(e) => setCount(e.target.value)}
-                onBlur={() => commitSingle(count)}
-              />
-              <span className="rowSpecGapLabel">人</span>
-            </>
-          )}
-        </div>
+        {hasGap ? (
+          <div className="rowGapInline">
+            <input
+              type="number" className="rowSpecInput compact" min={0} inputMode="numeric"
+              value={leftCount}
+              onChange={(e) => setLeftCount(e.target.value)}
+              onBlur={() => commitGap(leftCount, gapSize, rightCount)}
+            />
+            <span className="rowGapMidLabel">人 ←</span>
+            <span className="rowGapMidLabel">間</span>
+            <input
+              type="number" className="rowSpecInput compact" min={0} step={0.25} inputMode="decimal"
+              value={gapSize}
+              onChange={(e) => setGapSize(e.target.value)}
+              onBlur={() => commitGap(leftCount, gapSize, rightCount)}
+            />
+            <span className="rowGapMidLabel">人分 →</span>
+            <input
+              type="number" className="rowSpecInput compact" min={0} inputMode="numeric"
+              value={rightCount}
+              onChange={(e) => setRightCount(e.target.value)}
+              onBlur={() => commitGap(leftCount, gapSize, rightCount)}
+            />
+            <span className="rowGapMidLabel">人</span>
+          </div>
+        ) : (
+          <div className="rowEditCounts">
+            <input
+              type="number" className="rowSpecInput" min={0} inputMode="numeric"
+              value={count}
+              onChange={(e) => setCount(e.target.value)}
+              onBlur={() => commitSingle(count)}
+            />
+            <span className="rowSpecGapLabel">人</span>
+          </div>
+        )}
         <div className="rowShiftInline">
           {([-1, 0, 1] as const).map((v) => (
             <button
@@ -129,30 +136,18 @@ function RowEditorPanel({
         </button>
       </div>
 
-      {/* Gap size */}
-      {hasGap && (
-        <div className="rowGapSizeRow">
-          <span className="rowSpecGapLabel">すき間:</span>
-          <input
-            type="number" className="rowSpecInput compact" min={0} step={0.25} inputMode="decimal"
-            value={gapSize}
-            onChange={(e) => setGapSize(e.target.value)}
-            onBlur={() => commitGap(leftCount, gapSize, rightCount)}
-          />
-          <span className="rowSpecGapLabel">人分</span>
-        </div>
-      )}
-
       {/* Gap toggle */}
-      <label className="gapToggle">
+      <label className="toggleSwitch">
         <input type="checkbox" checked={hasGap} onChange={(e) => toggleGap(e.target.checked)} />
+        <span className="toggleTrack" />
         左右に分けて間を開ける
       </label>
 
       {/* Riser toggle + width */}
       <div className="riserToggleRow">
-        <label className="gapToggle" style={{ flex: 1 }}>
+        <label className="toggleSwitch" style={{ flex: 1 }}>
           <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
+          <span className="toggleTrack" />
           段に乗る
         </label>
         {rowOnRiser(row) && (
