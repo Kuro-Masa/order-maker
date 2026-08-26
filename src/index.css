@@ -416,7 +416,8 @@ svg {
   z-index: -1;
   background: #d9c7a8;
   border: 1px solid #b3987a;
-  border-radius: 8px;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
 }
 
 .guideLine {
@@ -1073,7 +1074,7 @@ svg {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: 200px;
+  width: 300px;
   text-align: center;
   border: none;
   background: none;
@@ -1281,28 +1282,14 @@ svg {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border);
 }
 
 .panelResizeHandle {
-  height: 10px;
+  height: 6px;
   cursor: ns-resize;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--panel-bg);
-  border-bottom: 1px solid var(--border);
   touch-action: none;
   user-select: none;
-}
-.panelResizeHandle::after {
-  content: '';
-  width: 36px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--muted);
-  opacity: 0.35;
 }
 
 .panelContent {
