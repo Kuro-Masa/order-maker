@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>オーダーメーカー</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <h1 class="sr-only">オーダーメーカー</h1>
+
+  <section class="topBar">
+    <div id="tabBar" class="tabBar"></div>
+    <div class="menuWrap">
+      <button id="menuBtn" class="iconBtn" aria-label="メニュー" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+      </button>
+      <div id="menuPanel" class="menuPanel" hidden>
+        <button id="renamePatternBtn" class="menuItem">名前を変更</button>
+        <button id="clearBtn" class="menuItem">名前を全消去</button>
+        <button id="shareBtn" class="menuItem">共有リンクを作成/更新</button>
+        <button id="refreshShareBtn" class="menuItem">共有内容を最新に取得</button>
+        <button id="exportCsvBtn" class="menuItem">CSV書き出し(名前のみ)</button>
+        <label class="menuItem file-btn">
+          CSV読み込み(名前のみ)
+          <input type="file" id="importCsvInput" accept=".csv" hidden>
+        </label>
+        <label class="menuItem file-btn">
+          JSON読み込み(全設定)
+          <input type="file" id="importJsonInput" accept=".json" hidden>
+        </label>
+        <button id="deletePatternBtn" class="menuItem danger">このパターンを削除</button>
+      </div>
+    </div>
+  </section>
+
+  <details class="accordion">
+    <summary>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" class="accordionIcon"><circle cx="9" cy="8" r="3" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" stroke-width="1.8"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5M14 15.5c2.6.3 4.5 2 4.5 4.5" stroke-width="1.8" stroke-linecap="round"/></svg>
+      パートの色分け
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" class="chevron"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="accordionBody">
+      <div class="partSettings">
+        <div class="partSchemeRow">
+          <label for="partSchemeSelect">配色パターン</label>
+          <select id="partSchemeSelect">
+            <option value="none">パート分けを使わない</option>
+            <option value="4">4色(Sop/Alt/Ten/Bas)</option>
+            <option value="6">6色(Sop/Mez/Alt/Ten/Bar/Bas)</option>
+            <option value="8">8色(Sop1/Sop2/Alt1/Alt2/Ten1/Ten2/Bas1/Bas2)</option>
+          </select>
+        </div>
+        <p id="partNoneNote" class="rowsEditorNote" hidden>パート分けを使わない場合、色塗りモードで自由に色を選べます。</p>
+        <div id="partCountsList" class="partCountsList"></div>
+        <p id="partTotalSummary" class="partTotalSummary"></p>
+        <button id="autoColorBtn" class="btn primary">人数に応じて自動で色分け</button>
+      </div>
+    </div>
+  </details>
+
+  <details class="accordion">
+    <summary>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" class="accordionIcon"><path d="M4 6h16M4 12h10M4 18h6" stroke-width="2" stroke-linecap="round"/></svg>
+      配置する枠の設定
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" class="chevron"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="accordionBody">
+      <div class="rowsEditor">
+        <p class="rowsEditorNote">横列ごとに人数を設定してください。例: 「8」で8人、「5,5」で5人+すき間(既定0.25マス分)+5人、「5,E2,5」ですき間をマス2個分に指定(小数も可)</p>
+        <div id="rowsList" class="rowsList"></div>
+        <button id="addRowBtn" class="btn">＋ 行を追加</button>
+        <p id="cellTotalSummary" class="partTotalSummary"></p>
+        <label class="conductorToggle">
+          <input type="checkbox" id="showConductorCheckbox" checked>
+          一番下の中央に指揮者マークを表示
+        </label>
+      </div>
+    </div>
+  </details>
+
+  <details class="accordion">
+    <summary>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" class="accordionIcon"><path d="M8 4v16M16 4v16" stroke-width="1.8" stroke-linecap="round"/></svg>
+      線の設定
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" class="chevron"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </summary>
+    <div class="accordionBody">
+      <div class="rowsEditor">
+        <p class="rowsEditorNote">ツールバーの「線」モードでプレビューをタップすると縦線を追加できます。位置の微調整や削除はここで行えます。</p>
+        <label class="conductorToggle">
+          <input type="checkbox" id="showCenterLineCheckbox">
+          中心に線を表示
+        </label>
+        <div id="linesList" class="linesList"></div>
+      </div>
+    </div>
+  </details>
+
+  <section class="toolbar">
+    <div class="modeGroup">
+      <button id="modeEditBtn" class="iconBtn mode-option" aria-label="編集モード">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>編集</span>
+      </button>
+      <button id="modeSwapBtn" class="iconBtn mode-option" aria-label="入れ替えモード">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 8h13l-3-3m3 3l-3 3M20 16H7l3 3m-3-3l3-3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>入れ替え</span>
+      </button>
+      <button id="modePaintBtn" class="iconBtn mode-option" aria-label="色塗りモード">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 21a8 8 0 1 1 0-16c4 0 7 2.5 7 6 0 2-1.5 3-3 3h-2a1.5 1.5 0 0 0 0 3h.5a1.5 1.5 0 0 1 0 3c-.8.3-1.6.5-2.5.5z" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14" cy="7" r="1"/></svg>
+        <span>色塗り</span>
+      </button>
+      <button id="modeLineBtn" class="iconBtn mode-option" aria-label="線モード">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 4v16M16 4v16" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>線</span>
+      </button>
+    </div>
+    <div class="toolbarSpacer"></div>
+    <button id="exportJsonBtn" class="iconBtn" aria-label="JSON書き出し">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>JSON</span>
+    </button>
+    <button id="exportImageBtn" class="iconBtn" aria-label="画像で保存">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.8"/><circle cx="9" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-5 5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>画像</span>
+    </button>
+  </section>
+
+  <div id="palette" class="palette" hidden></div>
+
+
+  <p id="hint" class="hint"></p>
+
+  <section class="gridWrap">
+    <div id="grid" class="gridRows"></div>
+  </section>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
