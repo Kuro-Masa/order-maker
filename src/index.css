@@ -548,9 +548,27 @@ svg {
   caret-color: transparent;
 }
 
-.cell.drag-over {
+.cell.drag-over,
+.cell.touch-drag-over {
   box-shadow: 0 0 0 3px var(--accent);
   background: rgba(58, 109, 240, 0.12) !important;
+}
+
+.memberDragGhost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0.92;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  transform: scale(1.06);
+  transition: none;
 }
 
 .rowsEditorNote {
@@ -1454,6 +1472,7 @@ svg {
   min-width: 54px;
   cursor: grab;
   user-select: none;
+  touch-action: none;
 }
 
 .memberChip:active {

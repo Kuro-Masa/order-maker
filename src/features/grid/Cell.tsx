@@ -18,6 +18,19 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
     }
   }, [cellData.name]);
 
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    function onMemberDrop(e: Event) {
+      const { name, memberId } = (e as CustomEvent<{ name: string; memberId: string }>).detail;
+      setCellName(r, c, name);
+      if (ref.current) ref.current.textContent = name;
+      removeMember(memberId);
+    }
+    el.addEventListener("memberdrop", onMemberDrop);
+    return () => el.removeEventListener("memberdrop", onMemberDrop);
+  }, [r, c, setCellName, removeMember]);
+
   const style: CSSProperties = {};
   if (cellData.color) {
     style.background = cellData.color;

@@ -302,12 +302,69 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Touch drag ────────────────────────────────────────────────
+
+function useTouchDrag() {
+  const dragRef = useRef<{ member: Member; ghost: HTMLDivElement; offsetX: number; offsetY: number } | null>(null);
+  const highlightRef = useRef<Element | null>(null);
+
+  function clearHighlight() {
+    highlightRef.current?.classList.remove("touch-drag-over");
+    highlightRef.current = null;
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>, m: Member) {
+    if (e.pointerType === "mouse") return;
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ghost = document.createElement("div");
+    ghost.className = "memberDragGhost";
+    ghost.textContent = m.name;
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    ghost.style.left = `${rect.left}px`;
+    ghost.style.top = `${rect.top}px`;
+    document.body.appendChild(ghost);
+    dragRef.current = { member: m, ghost, offsetX, offsetY };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    if (!drag) return;
+    e.preventDefault();
+    drag.ghost.style.left = `${e.clientX - drag.offsetX}px`;
+    drag.ghost.style.top = `${e.clientY - drag.offsetY}px`;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cell = el?.closest(".cell") ?? null;
+    if (cell !== highlightRef.current) {
+      clearHighlight();
+      if (cell) { cell.classList.add("touch-drag-over"); highlightRef.current = cell; }
+    }
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    dragRef.current = null;
+    drag?.ghost.remove();
+    clearHighlight();
+    if (!drag) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    el?.closest(".cell")?.dispatchEvent(
+      new CustomEvent("memberdrop", { bubbles: false, detail: { name: drag.member.name, memberId: drag.member.id } })
+    );
+  }
+
+  return { handlePointerDown, handlePointerMove, handlePointerUp };
+}
+
 // ── Member pool ────────────────────────────────────────────────
 
 export function MemberPool() {
   const { members, clearMembers } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [poolOpen, setPoolOpen] = useState(true);
+  const { handlePointerDown, handlePointerMove, handlePointerUp } = useTouchDrag();
 
   return (
     <>
@@ -358,6 +415,10 @@ export function MemberPool() {
                   e.dataTransfer.setData("application/x-member", m.name);
                   e.dataTransfer.setData("application/x-member-id", m.id);
                 }}
+                onPointerDown={(e) => handlePointerDown(e, m)}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
               >
                 <span className="chipName">{m.name}</span>
                 <div className="chipParts">
