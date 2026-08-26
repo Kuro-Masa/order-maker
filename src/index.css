@@ -520,6 +520,11 @@ svg {
   caret-color: transparent;
 }
 
+.cell.drag-over {
+  box-shadow: 0 0 0 3px var(--accent);
+  background: rgba(58, 109, 240, 0.12) !important;
+}
+
 .rowsEditorNote {
   font-size: 0.8rem;
   color: var(--muted);
@@ -1303,7 +1308,13 @@ svg {
   border-radius: 8px;
   padding: 5px 8px;
   min-width: 54px;
-  cursor: default;
+  cursor: grab;
+  user-select: none;
+}
+
+.memberChip:active {
+  cursor: grabbing;
+  opacity: 0.7;
 }
 
 .chipName {

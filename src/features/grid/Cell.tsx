@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type FormEvent, type KeyboardEvent, type ClipboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type ClipboardEvent, type DragEvent } from "react";
 import { CELL_MAX_LENGTH, CELL_TEXT_COLOR } from "../../constants";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
@@ -7,6 +7,7 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
   const { mode, selected, setCellName, onCellSwapClick, paintCell, currentColor } = useApp();
   const cellData = row.cells[c];
   const ref = useRef<HTMLDivElement>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -26,6 +27,7 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
   let className = "cell";
   if (mode !== "edit") className += " readonly-mode";
   if (mode === "swap" && selected && selected.r === r && selected.c === c) className += " selected";
+  if (dragOver) className += " drag-over";
 
   function handleInput(e: FormEvent<HTMLDivElement>) {
     const el = e.currentTarget;
@@ -58,6 +60,25 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
     else if (mode === "paint") paintCell(r, c, currentColor);
   }
 
+  function handleDragOver(e: DragEvent<HTMLDivElement>) {
+    if (!e.dataTransfer.types.includes("application/x-member")) return;
+    e.preventDefault();
+    setDragOver(true);
+  }
+
+  function handleDragLeave() {
+    setDragOver(false);
+  }
+
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragOver(false);
+    const name = e.dataTransfer.getData("application/x-member");
+    if (!name) return;
+    setCellName(r, c, name);
+    if (ref.current) ref.current.textContent = name;
+  }
+
   return (
     <div
       ref={ref}
@@ -70,6 +91,9 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
       onPaste={mode === "edit" ? handlePaste : undefined}
       onKeyDown={mode === "edit" ? handleKeyDown : undefined}
       onClick={mode === "swap" || mode === "paint" ? handleClick : undefined}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     />
   );
 }

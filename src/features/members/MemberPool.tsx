@@ -141,7 +141,15 @@ export function MemberPool() {
         ) : (
           <div className="memberList">
             {members.map((m) => (
-              <div key={m.id} className="memberChip">
+              <div
+                key={m.id}
+                className="memberChip"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "copy";
+                  e.dataTransfer.setData("application/x-member", m.name);
+                }}
+              >
                 <span className="chipName">{m.name}</span>
                 <div className="chipParts">
                   {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
