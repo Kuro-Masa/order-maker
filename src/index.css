@@ -1516,7 +1516,63 @@ svg {
   font-size: 15px;
   font-weight: 600;
   color: var(--text);
+  margin-bottom: 10px;
+}
+
+.memberDialogTabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.memberDialogTab {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.memberDialogTab.active {
+  background: var(--panel-bg);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.memberPasteArea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px 12px;
+  line-height: 1.7;
+  outline: none;
   margin-bottom: 6px;
+}
+.memberPasteArea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.memberPastePreview {
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 10px;
 }
 
 .memberDialogDesc {
