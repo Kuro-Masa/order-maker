@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, type MouseEvent } from "react";
+import { useState, useRef, useLayoutEffect, type MouseEvent } from "react";
 import { rowShiftPx, showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
@@ -7,6 +7,7 @@ import { useGridLayout } from "./useGridLayout";
 
 export function GridView() {
   const { activePattern, mode, addLine, updateLinePos, toolbarMode, setSelectedEditRow } = useApp();
+  const [zoom, setZoom] = useState(1);
   const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const cellsWrapRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -40,9 +41,35 @@ export function GridView() {
   const lastRow = activePattern.rows[activePattern.rows.length - 1];
   const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
 
+  const zoomStep = 0.1;
+  const minZoom = 0.3;
+  const maxZoom = 1.5;
+
   return (
     <section className="gridWrap" ref={wrapRef}>
-      <div className="gridRows" ref={gridRef} onClick={handleGridClick}>
+      <div className="gridZoomControls">
+        <button
+          type="button"
+          className="gridZoomBtn"
+          aria-label="縮小"
+          disabled={zoom <= minZoom}
+          onClick={() => setZoom((z) => parseFloat(Math.max(minZoom, z - zoomStep).toFixed(1)))}
+        >−</button>
+        <span className="gridZoomLabel">{Math.round(zoom * 100)}%</span>
+        <button
+          type="button"
+          className="gridZoomBtn"
+          aria-label="拡大"
+          disabled={zoom >= maxZoom}
+          onClick={() => setZoom((z) => parseFloat(Math.min(maxZoom, z + zoomStep).toFixed(1)))}
+        >＋</button>
+      </div>
+      <div
+        className="gridRows"
+        ref={gridRef}
+        style={zoom !== 1 ? { transform: `scale(${zoom})`, transformOrigin: "top center" } : undefined}
+        onClick={handleGridClick}
+      >
         {activePattern.rows.map((row, r) => (
           <Row
             key={r}

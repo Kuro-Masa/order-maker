@@ -381,6 +381,59 @@ svg {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin-bottom: 14px;
+  position: relative;
+}
+
+.gridZoomControls {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: color-mix(in srgb, var(--panel-bg, #fff) 88%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 999px;
+  padding: 3px 6px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+}
+
+.gridZoomBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text, #222);
+  padding: 0;
+  transition: background 0.12s;
+}
+
+.gridZoomBtn:hover:not(:disabled) {
+  background: var(--hover, rgba(0, 0, 0, 0.07));
+}
+
+.gridZoomBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.gridZoomLabel {
+  font-size: 0.7rem;
+  min-width: 34px;
+  text-align: center;
+  color: var(--muted, #888);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
 @media (min-width: 900px) {
