@@ -1582,23 +1582,60 @@ svg {
   line-height: 1.6;
 }
 
-.memberDialogCols {
-  font-size: 12px;
-  background: var(--bg);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 12px;
-  color: var(--muted);
-  line-height: 1.8;
+/* Column mapping */
+.colMapping {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.memberDialogCols code {
-  font-family: ui-monospace, monospace;
-  color: var(--text);
-  background: var(--panel-bg);
-  padding: 1px 4px;
-  border-radius: 3px;
+.colMappingCols {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.colMappingItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 60px;
+  max-width: 140px;
+}
+
+.colSample {
   font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 6px;
+  background: var(--bg);
+  border-radius: 4px;
+  min-height: 20px;
+}
+
+.colRoleSelect {
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  width: 100%;
+}
+
+.skipHeaderLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
 }
 
 .templateLink {

@@ -2,27 +2,78 @@ import { useState, useRef, type ChangeEvent } from "react";
 import { useApp } from "../../state/AppStoreContext";
 import type { Member } from "../../types";
 
-function parseMemberText(text: string): Member[] {
+// ── Types ──────────────────────────────────────────────────────
+
+type ColRole = "name" | "part1" | "part2" | "skip";
+
+const COL_ROLE_LABELS: Record<ColRole, string> = {
+  name: "氏名",
+  part1: "パート1",
+  part2: "パート2",
+  skip: "スキップ",
+};
+
+// ── Parsing ────────────────────────────────────────────────────
+
+function parseRawText(text: string): string[][] {
   const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-  const members: Member[] = [];
+  const rows: string[][] = [];
   for (const raw of lines) {
-    const line = raw.trim();
-    if (!line) continue;
-    // Auto-detect: tab (spreadsheet copy) or comma (CSV)
-    const sep = line.includes("\t") ? "\t" : ",";
-    const cols = line.split(sep).map((c) => c.trim().replace(/^"(.*)"$/, "$1"));
-    if (cols.length < 3) continue;
-    const [part1, part2, name] = cols;
-    if (!name || name === "氏名" || name === "名前") continue; // skip header
-    members.push({
-      id: Math.random().toString(36).slice(2),
-      name: name.trim(),
-      part1: part1?.trim() ?? "",
-      part2: part2?.trim() ?? "",
-    });
+    if (!raw.trim()) continue;
+    const sep = raw.includes("\t") ? "\t" : ",";
+    const cols = raw.split(sep).map((c) => c.trim().replace(/^"(.*)"$/, "$1"));
+    rows.push(cols);
   }
-  return members;
+  return rows;
 }
+
+const NAME_KEYWORDS = ["氏名", "名前", "name"];
+const PART1_KEYWORDS = ["パート1", "part1", "パート", "part"];
+const PART2_KEYWORDS = ["パート2", "part2"];
+
+function autoDetectRoles(firstRow: string[]): { roles: ColRole[]; isHeader: boolean } {
+  const lower = firstRow.map((c) => c.toLowerCase());
+  const roles: ColRole[] = firstRow.map(() => "skip" as ColRole);
+  let isHeader = false;
+
+  for (let i = 0; i < lower.length; i++) {
+    const c = lower[i];
+    if (NAME_KEYWORDS.some((k) => c.includes(k.toLowerCase()))) {
+      roles[i] = "name"; isHeader = true;
+    } else if (PART2_KEYWORDS.some((k) => c.includes(k.toLowerCase()))) {
+      roles[i] = "part2"; isHeader = true;
+    } else if (PART1_KEYWORDS.some((k) => c.includes(k.toLowerCase()))) {
+      roles[i] = "part1"; isHeader = true;
+    }
+  }
+
+  if (!isHeader) {
+    if (firstRow.length >= 3) { roles[0] = "part1"; roles[1] = "part2"; roles[2] = "name"; }
+    else if (firstRow.length === 2) { roles[0] = "part1"; roles[1] = "name"; }
+    else if (firstRow.length === 1) { roles[0] = "name"; }
+  }
+
+  return { roles, isHeader };
+}
+
+function buildMembers(rows: string[][], roles: ColRole[], skipHeader: boolean): Member[] {
+  const nameIdx = roles.indexOf("name");
+  const part1Idx = roles.indexOf("part1");
+  const part2Idx = roles.indexOf("part2");
+  if (nameIdx < 0) return [];
+  return rows.slice(skipHeader ? 1 : 0).flatMap((row) => {
+    const name = row[nameIdx]?.trim() ?? "";
+    if (!name) return [];
+    return [{
+      id: Math.random().toString(36).slice(2),
+      name,
+      part1: part1Idx >= 0 ? (row[part1Idx]?.trim() ?? "") : "",
+      part2: part2Idx >= 0 ? (row[part2Idx]?.trim() ?? "") : "",
+    }];
+  });
+}
+
+// ── Template download ──────────────────────────────────────────
 
 function downloadTemplateCsv() {
   const content = "パート1,パート2,氏名\nSop,1st,田中 花子\nAlt,2nd,鈴木 美咲\n";
@@ -35,6 +86,66 @@ function downloadTemplateCsv() {
   URL.revokeObjectURL(url);
 }
 
+// ── Column mapping UI ──────────────────────────────────────────
+
+function ColMapping({
+  parsedRows,
+  colRoles,
+  skipHeader,
+  onRoleChange,
+  onSkipHeaderChange,
+}: {
+  parsedRows: string[][];
+  colRoles: ColRole[];
+  skipHeader: boolean;
+  onRoleChange: (idx: number, role: ColRole) => void;
+  onSkipHeaderChange: (v: boolean) => void;
+}) {
+  const numCols = parsedRows[0]?.length ?? 0;
+  const members = buildMembers(parsedRows, colRoles, skipHeader);
+  const nameAssigned = colRoles.includes("name");
+
+  return (
+    <div className="colMapping">
+      <div className="colMappingCols">
+        {Array.from({ length: numCols }, (_, i) => (
+          <div key={i} className="colMappingItem">
+            <div className="colSample" title={parsedRows[0]?.[i] ?? ""}>
+              {parsedRows[0]?.[i] ?? ""}
+            </div>
+            <select
+              className="colRoleSelect"
+              value={colRoles[i] ?? "skip"}
+              onChange={(e) => onRoleChange(i, e.target.value as ColRole)}
+            >
+              {(["name", "part1", "part2", "skip"] as ColRole[]).map((r) => (
+                <option key={r} value={r}>{COL_ROLE_LABELS[r]}</option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+      <label className="skipHeaderLabel">
+        <input
+          type="checkbox"
+          checked={skipHeader}
+          onChange={(e) => onSkipHeaderChange(e.target.checked)}
+        />
+        先頭行をヘッダーとしてスキップ
+      </label>
+      <p className="memberPastePreview">
+        {!nameAssigned
+          ? "▲ 氏名の列を指定してください"
+          : members.length > 0
+          ? `${members.length}人を認識しました`
+          : "有効な氏名が見つかりません"}
+      </p>
+    </div>
+  );
+}
+
+// ── Import dialog ──────────────────────────────────────────────
+
 function ImportDialog({ onClose }: { onClose: () => void }) {
   const { setMembers } = useApp();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -42,13 +153,35 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
   const [pasteText, setPasteText] = useState("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const pendingRef = useRef<Member[]>([]);
+  const [parsedRows, setParsedRows] = useState<string[][]>([]);
+  const [colRoles, setColRoles] = useState<ColRole[]>([]);
+  const [skipHeader, setSkipHeader] = useState(false);
+
+  function applyParsed(rows: string[][]) {
+    setParsedRows(rows);
+    if (rows.length > 0) {
+      const { roles, isHeader } = autoDetectRoles(rows[0]);
+      setColRoles(roles);
+      setSkipHeader(isHeader);
+    } else {
+      setColRoles([]);
+      setSkipHeader(false);
+    }
+  }
+
+  function switchTab(t: "paste" | "file") {
+    setTab(t);
+    setError(null);
+    setParsedRows([]);
+    setColRoles([]);
+    setPasteText("");
+    setFileName(null);
+  }
 
   function handlePasteChange(text: string) {
     setPasteText(text);
     setError(null);
-    const parsed = parseMemberText(text);
-    pendingRef.current = parsed;
+    applyParsed(parseRawText(text));
   }
 
   function handleFile(e: ChangeEvent<HTMLInputElement>) {
@@ -58,32 +191,38 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
     setError(null);
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const parsed = parseMemberText(text);
-      if (parsed.length === 0) {
-        setError("メンバーが見つかりませんでした。形式を確認してください。");
-        pendingRef.current = [];
-      } else {
-        pendingRef.current = parsed;
-      }
+      applyParsed(parseRawText(ev.target?.result as string));
     };
     reader.readAsText(file, "UTF-8");
     e.target.value = "";
   }
 
-  function handleImport() {
-    const pending = pendingRef.current;
-    if (pending.length === 0) {
-      setError(tab === "paste"
-        ? "貼り付けられたデータにメンバーが見つかりませんでした。"
-        : "先にCSVファイルを選択してください。");
-      return;
-    }
-    setMembers(pending);
-    onClose();
+  function handleRoleChange(idx: number, role: ColRole) {
+    setColRoles((prev) => {
+      const next = [...prev];
+      if (role !== "skip") {
+        const existing = next.indexOf(role);
+        if (existing >= 0 && existing !== idx) next[existing] = "skip";
+      }
+      next[idx] = role;
+      return next;
+    });
   }
 
-  const pastePreview = parseMemberText(pasteText);
+  const members = buildMembers(parsedRows, colRoles, skipHeader);
+
+  function handleImport() {
+    if (!colRoles.includes("name")) {
+      setError("氏名の列を指定してください。");
+      return;
+    }
+    if (members.length === 0) {
+      setError("メンバーが見つかりませんでした。");
+      return;
+    }
+    setMembers(members);
+    onClose();
+  }
 
   return (
     <div className="memberDialogBackdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -94,45 +233,30 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             className={"memberDialogTab" + (tab === "paste" ? " active" : "")}
-            onClick={() => { setTab("paste"); setError(null); pendingRef.current = []; }}
+            onClick={() => switchTab("paste")}
           >
             スプレッドシートからコピペ
           </button>
           <button
             type="button"
             className={"memberDialogTab" + (tab === "file" ? " active" : "")}
-            onClick={() => { setTab("file"); setError(null); pendingRef.current = []; }}
+            onClick={() => switchTab("file")}
           >
             CSVファイル
           </button>
         </div>
 
         {tab === "paste" ? (
-          <>
-            <p className="memberDialogDesc">
-              スプレッドシートで <code>パート1</code>・<code>パート2</code>・<code>氏名</code> の3列を選択してコピーし、下に貼り付けてください。
-            </p>
-            <textarea
-              className="memberPasteArea"
-              placeholder={"Sop\t1st\t田中 花子\nAlt\t2nd\t鈴木 美咲"}
-              value={pasteText}
-              onChange={(e) => handlePasteChange(e.target.value)}
-              rows={7}
-              spellCheck={false}
-            />
-            {pasteText && (
-              <p className="memberPastePreview">
-                {pastePreview.length > 0
-                  ? `${pastePreview.length}人を認識しました`
-                  : "メンバーが認識できません。列の順番を確認してください。"}
-              </p>
-            )}
-          </>
+          <textarea
+            className="memberPasteArea"
+            placeholder={"Sop\t1st\t田中 花子\nAlt\t2nd\t鈴木 美咲\n\n※ 列の割り当ては貼り付け後に設定できます"}
+            value={pasteText}
+            onChange={(e) => handlePasteChange(e.target.value)}
+            rows={4}
+            spellCheck={false}
+          />
         ) : (
           <>
-            <p className="memberDialogDesc">
-              パート1・パート2・氏名の3列で作成したCSVを取り込みます。
-            </p>
             <button type="button" className="templateLink" onClick={downloadTemplateCsv}>
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" aria-hidden="true">
                 <path d="M12 3v12m0 0l-3.5-3.5M12 15l3.5-3.5M5 19h14" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -151,15 +275,34 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
           </>
         )}
 
+        {parsedRows.length > 0 && (
+          <ColMapping
+            parsedRows={parsedRows}
+            colRoles={colRoles}
+            skipHeader={skipHeader}
+            onRoleChange={handleRoleChange}
+            onSkipHeaderChange={setSkipHeader}
+          />
+        )}
+
         {error && <p className="memberDialogError">{error}</p>}
         <div className="memberDialogBtns">
           <button type="button" className="btn" onClick={onClose}>キャンセル</button>
-          <button type="button" className="btn primary" onClick={handleImport}>取り込む</button>
+          <button
+            type="button"
+            className="btn primary"
+            onClick={handleImport}
+            disabled={members.length === 0}
+          >
+            取り込む
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
+// ── Member pool ────────────────────────────────────────────────
 
 export function MemberPool() {
   const { members, clearMembers } = useApp();
@@ -173,7 +316,7 @@ export function MemberPool() {
           <button
             type="button"
             className="poolToggleBtn"
-            onClick={() => setPoolOpen(v => !v)}
+            onClick={() => setPoolOpen((v) => !v)}
             aria-expanded={poolOpen}
             aria-label={poolOpen ? "メンバーを折りたたむ" : "メンバーを広げる"}
           >
