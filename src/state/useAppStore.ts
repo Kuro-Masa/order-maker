@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Unsubscribe } from "firebase/firestore";
-import { CELL_W, DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT, GAP_X, PALETTE, PART_SCHEMES } from "../constants";
+import { DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT, PALETTE, PART_SCHEMES } from "../constants";
 import type { Mode, Pattern, PatternJson, Selected } from "../types";
 import { loadState, saveState } from "./persistence";
 import {
@@ -226,17 +226,14 @@ export function useAppStore() {
       const segments = row.segments.slice();
       const cells = row.cells.slice();
       const newCell = { name: "", color: null };
-      // (CELL_W + GAP_X) / 2 px is how much the natural center shifts when row grows by one cell
-      const shiftDelta = (CELL_W + GAP_X) / 2 / 22; // in shift-units (1 unit = 22px)
       if (side === "right") {
         segments[segments.length - 1]++;
         cells.push(newCell);
-        row.shift = (row.shift ?? 0) - shiftDelta;
       } else {
         segments[0]++;
         cells.unshift(newCell);
-        row.shift = (row.shift ?? 0) + shiftDelta;
       }
+      row.shift = 0;
       rows[rowIndex] = { ...row, segments, cells };
       return { ...p, rows };
     });
