@@ -14,7 +14,7 @@ export function PartColorSettingsContent() {
   return (
     <div className="partSettings">
       <div className="partSchemeRow">
-        <label htmlFor="partSchemeSelect">配色パターン</label>
+        <label htmlFor="partSchemeSelect">声部数</label>
         <select
           id="partSchemeSelect"
           value={settings.scheme}
@@ -30,29 +30,29 @@ export function PartColorSettingsContent() {
         <p className="rowsEditorNote">パート分けを使わない場合、色塗りモードで自由に色を選べます。</p>
       )}
       {!isNone && (
-        <div className="partCountsList">
-          {parts.map((part) => (
-            <div className="partCountItem" key={part.key}>
-              <span className="partSwatch" style={{ background: part.color }} />
-              <span className="partLabel">{part.key}</span>
-              <input
-                type="number"
-                min={0}
-                inputMode="numeric"
-                value={settings.counts[part.key] || 0}
-                onChange={(e) => setPartCount(part.key, parseInt(e.target.value, 10) || 0)}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-      {!isNone && (
-        <p className={"partTotalSummary" + (mismatch ? " mismatch" : "")}>人数合計: {partsTotal}人</p>
-      )}
-      {!isNone && (
-        <button type="button" className="btn primary" onClick={autoColorizeByParts}>
-          人数に応じて自動で色分け
-        </button>
+        <>
+          <p className="partCountsLabel">各声部の人数</p>
+          <div className="partCountsList">
+            {parts.map((part) => (
+              <div className="partCountItem" key={part.key}>
+                <span className="partSwatch" style={{ background: part.color }} />
+                <input
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  value={settings.counts[part.key] || 0}
+                  onChange={(e) => setPartCount(part.key, parseInt(e.target.value, 10) || 0)}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="partCountsFooter">
+            <p className={"partTotalSummary" + (mismatch ? " mismatch" : "")}>合計 {partsTotal}人</p>
+            <button type="button" className="btn primary" onClick={autoColorizeByParts}>
+              自動で色分け
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

@@ -602,64 +602,60 @@ svg {
   font-size: 0.9rem;
 }
 
+.partCountsLabel {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
 .partCountsList {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
-  width: 100%;
   margin-bottom: 10px;
-}
-
-.partCountsList[hidden],
-#autoColorBtn[hidden] {
-  display: none;
-}
-
-.partTotalSummary {
-  font-size: 0.85rem;
-  color: var(--text);
-  margin: 0 0 10px;
-}
-
-.partTotalSummary[hidden] {
-  display: none;
-}
-
-.partTotalSummary.mismatch {
-  color: #c0392b;
-  font-weight: 600;
 }
 
 .partCountItem {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
 }
 
 .partSwatch {
-  width: 22px;
-  height: 22px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   flex: 0 0 auto;
   border: 1px solid var(--border);
 }
 
-.partLabel {
-  flex: 0 0 auto;
-  width: 60px;
-  font-size: 0.85rem;
-  color: var(--text);
-}
-
 .partCountItem input[type="number"] {
-  flex: 1;
-  min-width: 0;
-  padding: 8px;
+  width: 52px;
+  padding: 5px 6px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 7px;
   background: var(--bg);
   color: var(--text);
   font-size: 0.95rem;
+  text-align: center;
+}
+
+.partCountsFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.partTotalSummary {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.partTotalSummary.mismatch {
+  color: #c0392b;
+  font-weight: 600;
 }
 
 .rowsList {
