@@ -469,6 +469,20 @@ svg {
 .row {
   display: flex;
   align-items: center;
+  border-radius: 8px;
+  transition: box-shadow 0.14s;
+}
+
+.row.rowSelectable {
+  cursor: pointer;
+}
+
+.row.rowSelectable:hover {
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.row.rowSelectedForEdit {
+  box-shadow: 0 0 0 6px var(--accent);
 }
 
 .cellsWrap {
@@ -742,6 +756,16 @@ svg {
 .addRowBtn {
   width: 100%;
   margin-bottom: 6px;
+}
+
+.rowDeleteBtn {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.rowsEditorHint {
+  text-align: center;
+  padding: 12px 0;
 }
 
 .rowsList {

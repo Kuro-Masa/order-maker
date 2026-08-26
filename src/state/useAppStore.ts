@@ -32,7 +32,8 @@ export function useAppStore() {
   const [selected, setSelected] = useState<Selected | null>(null);
   const [currentColor, setCurrentColor] = useState<string | null>(PALETTE[0]);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [toolbarMode, setToolbarMode] = useState<string>("names");
+  const [toolbarMode, setToolbarMode] = useState<string>("rows");
+  const [selectedEditRow, setSelectedEditRow] = useState<number | null>(null);
 
   const stateRef = useRef(state);
   const shareUnsubRef = useRef<Unsubscribe | null>(null);
@@ -517,6 +518,8 @@ export function useAppStore() {
     changeMode,
     toolbarMode,
     setToolbarMode,
+    selectedEditRow,
+    setSelectedEditRow,
     selected,
     setSelected,
     currentColor,

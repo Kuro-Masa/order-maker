@@ -203,7 +203,7 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
 
 export function BottomToolbar() {
   const { changeMode, toolbarMode, setToolbarMode } = useApp();
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true);
   const [panelHeight, setPanelHeight] = useState(200);
 
   function selectMode(m: ToolbarMode) {

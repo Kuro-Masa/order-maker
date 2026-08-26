@@ -13,11 +13,17 @@ export function Row({
   r: number;
   cellsWrapRef: (el: HTMLDivElement | null) => void;
 }) {
-  const { toolbarMode, addCellToRow } = useApp();
+  const { toolbarMode, addCellToRow, selectedEditRow, setSelectedEditRow } = useApp();
   const showAddBtns = toolbarMode === "rows";
+  const isRowsMode = toolbarMode === "rows";
+  const isSelected = isRowsMode && selectedEditRow === r;
   let cellIdx = 0;
   return (
-    <div className="row" style={rowShiftPx(row) !== 0 ? { transform: `translateX(${rowShiftPx(row)}px)` } : undefined}>
+    <div
+      className={"row" + (isRowsMode ? " rowSelectable" : "") + (isSelected ? " rowSelectedForEdit" : "")}
+      style={rowShiftPx(row) !== 0 ? { transform: `translateX(${rowShiftPx(row)}px)` } : undefined}
+      onClick={isRowsMode ? () => setSelectedEditRow(r) : undefined}
+    >
       {showAddBtns && (
         <button type="button" className="rowAddCellBtn" onClick={() => addCellToRow(r, "left")} aria-label="左にセルを追加">+</button>
       )}
