@@ -313,11 +313,6 @@ svg {
   gap: 4px;
 }
 
-.swatchLabel {
-  font-size: 0.7rem;
-  color: var(--muted);
-}
-
 .swatch {
   width: 36px;
   height: 36px;

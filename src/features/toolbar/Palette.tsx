@@ -19,7 +19,6 @@ export function Palette() {
             title={part.key ?? undefined}
             onClick={() => setCurrentColor(part.color)}
           />
-          {part.key && <span className="swatchLabel">{part.key}</span>}
         </div>
       ))}
       <button
