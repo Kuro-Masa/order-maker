@@ -30,10 +30,6 @@ export function firebaseReady(): boolean {
   }
 }
 
-export function generateShareId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-
 function shareDocRef(shareId: string) {
   if (!db) throw new Error("Firestore is not initialized");
   return doc(db, "patterns", shareId);
@@ -42,6 +38,7 @@ function shareDocRef(shareId: string) {
 export function buildShareUrl(shareId: string): URL {
   const url = new URL(window.location.href);
   url.searchParams.set("share", shareId);
+  url.searchParams.delete("layout");
   return url;
 }
 

@@ -24,7 +24,6 @@ import {
   buildShareUrl,
   fetchPatternFromFirestore,
   firebaseReady,
-  generateShareId,
   listenToPattern,
   pushPatternToFirestore,
 } from "../features/share/share";
@@ -92,16 +91,26 @@ export function useAppStore() {
 
   // ---- screen navigation ----
 
-  function navigateToEdit(patternId?: string) {
+  function navigateToEdit(patternId?: string, { replace = false } = {}) {
+    const id = patternId ?? state.activeId;
     if (patternId && patternId !== state.activeId) {
       setState((prev) => ({ ...prev, activeId: patternId }));
       setSelected(null);
     }
     setScreen("edit");
+    const url = new URL(window.location.href);
+    if (id) url.searchParams.set("layout", id);
+    url.searchParams.delete("share");
+    if (replace) {
+      window.history.replaceState(null, "", url.toString());
+    } else {
+      window.history.pushState(null, "", url.toString());
+    }
   }
 
   function navigateToList() {
     setScreen("list");
+    window.history.pushState(null, "", window.location.pathname);
   }
 
   // ---- pattern (tab) management ----
@@ -463,19 +472,19 @@ export function useAppStore() {
     }
     let pattern = activePattern;
     if (!pattern.shareId) {
-      const shareId = generateShareId();
+      // Use the pattern's own id as the Firestore document id
+      const shareId = pattern.id;
       updateActivePattern((p) => ({ ...p, shareId }));
       pattern = { ...pattern, shareId };
     }
     try {
       await pushPatternToFirestore(pattern);
       ensureShareListener(pattern);
-      const url = buildShareUrl(pattern.shareId!);
-      window.history.replaceState(null, "", url.toString());
+      const shareUrl = buildShareUrl(pattern.shareId!);
       if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(url.toString()).catch(() => {});
+        navigator.clipboard.writeText(shareUrl.toString()).catch(() => {});
       }
-      setShareUrl(url.toString());
+      setShareUrl(shareUrl.toString());
     } catch (e) {
       console.error(e);
       alert("共有リンクの作成に失敗しました: " + (e as Error).message);
@@ -501,16 +510,30 @@ export function useAppStore() {
     }
   }
 
-  // Load a shared pattern from ?share=<id> on first mount.
+  // On first mount: restore screen from URL params (?layout= or ?share=).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const layoutId = params.get("layout");
     const shareId = params.get("share");
+
+    // ?layout=:id → open that pattern directly
+    if (layoutId && !shareId) {
+      const pattern = stateRef.current.patterns.find((p) => p.id === layoutId);
+      if (pattern) navigateToEdit(layoutId, { replace: true });
+      else window.history.replaceState(null, "", window.location.pathname);
+      return;
+    }
+
+    // ?share=:shareId → load from Firestore and open
     if (!shareId || !firebaseReady()) return;
 
-    const existing = stateRef.current.patterns.find((p) => p.shareId === shareId);
+    const existing = stateRef.current.patterns.find(
+      (p) => p.shareId === shareId || p.id === shareId
+    );
     if (existing) {
       setState((prev) => ({ ...prev, activeId: existing.id }));
       ensureShareListener(existing);
+      setScreen("edit");
       return;
     }
 
@@ -526,6 +549,7 @@ export function useAppStore() {
         pattern.shareId = shareId;
         setState((prev) => ({ patterns: [...prev.patterns, pattern], activeId: pattern.id }));
         ensureShareListener(pattern);
+        setScreen("edit");
       })
       .catch((e) => {
         console.error(e);
