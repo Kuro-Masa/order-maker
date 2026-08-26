@@ -807,36 +807,51 @@ svg {
   opacity: 1;
 }
 
-.rowEditPanel {
+/* Row edit cards */
+.rowsEditor {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--accent);
+  gap: 6px;
+  padding: 4px 0 8px;
+  overflow-y: auto;
+}
+
+.rowEditCard {
+  border: 1.5px solid var(--border);
   border-radius: 10px;
-  width: 100%;
-  margin-bottom: 10px;
-  background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.13s, background 0.13s;
+  background: var(--bg);
+}
+
+.rowEditCard.rowEditCardSelected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+}
+
+.rowEditPanelInner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rowEditPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
 }
 
 .rowEditLabel {
   margin: 0;
   font-weight: 600;
+  font-size: 0.82rem;
   color: var(--accent);
 }
 
-.rowEditTopRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rowEditCounts {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
+.rowSubContent {
+  padding-left: 44px;
 }
 
 .rowShiftInline {
@@ -847,9 +862,9 @@ svg {
 
 .rowEditDelete {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -858,11 +873,37 @@ svg {
   border-color: #c0392b;
 }
 
-.riserToggleRow {
+/* Conductor separator */
+.conductorSeparator {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding-top: 14px;
+  margin-top: 6px;
+  border-top: 1.5px dashed var(--border);
+}
+
+/* Add row button in grid */
+.gridAddRowBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 34px;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s;
+  margin-top: 2px;
+}
+
+.gridAddRowBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .riserBg.riserSelectable {

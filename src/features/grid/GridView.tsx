@@ -6,7 +6,7 @@ import { GuideLine } from "./GuideLine";
 import { useGridLayout } from "./useGridLayout";
 
 export function GridView() {
-  const { activePattern, mode, addLine, updateLinePos, toolbarMode, setSelectedEditRow } = useApp();
+  const { activePattern, mode, addLine, updateLinePos, toolbarMode, setSelectedEditRow, addRow } = useApp();
   const [zoom, setZoom] = useState(1);
   const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -81,12 +81,24 @@ export function GridView() {
           />
         ))}
 
-        <div
-          className="conductorMark"
-          style={lastShift !== 0 ? { transform: `translateX(${lastShift}px)` } : undefined}
-          title="指揮者(この位置が前)"
-        >
-          指揮
+        {toolbarMode === "rows" && (
+          <button
+            type="button"
+            className="gridAddRowBtn"
+            onClick={(e) => { e.stopPropagation(); addRow(); }}
+          >
+            ＋ 列を追加
+          </button>
+        )}
+
+        <div className="conductorSeparator">
+          <div
+            className="conductorMark"
+            style={lastShift !== 0 ? { transform: `translateX(${lastShift}px)` } : undefined}
+            title="指揮者(この位置が前)"
+          >
+            指揮
+          </div>
         </div>
 
         {layout.risers.map((rect, i) => (

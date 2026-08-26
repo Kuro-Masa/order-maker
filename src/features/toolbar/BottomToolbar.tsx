@@ -204,7 +204,7 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
 export function BottomToolbar() {
   const { changeMode, toolbarMode, setToolbarMode } = useApp();
   const [panelOpen, setPanelOpen] = useState(true);
-  const [panelHeight, setPanelHeight] = useState(200);
+  const [panelHeight, setPanelHeight] = useState(toolbarMode === "rows" ? 320 : 200);
 
   function selectMode(m: ToolbarMode) {
     if (toolbarMode === m) {
@@ -213,6 +213,7 @@ export function BottomToolbar() {
       setToolbarMode(m);
       changeMode(STORE_MODE[m]);
       setPanelOpen(true);
+      setPanelHeight(m === "rows" ? 320 : 200);
     }
   }
 
