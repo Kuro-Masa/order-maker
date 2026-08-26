@@ -730,11 +730,18 @@ svg {
   border-color: #c0392b;
 }
 
+.linesActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .conductorToggle {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 0;
   font-size: 0.85rem;
   color: var(--text);
 }
@@ -1339,6 +1346,18 @@ svg {
 
 .memberPool {
   flex-shrink: 0;
+}
+
+.poolImportRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.poolImportRow .poolImportTrigger {
+  margin-bottom: 0;
+  flex: 1;
 }
 
 .poolImportTrigger {

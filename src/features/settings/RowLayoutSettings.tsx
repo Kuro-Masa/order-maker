@@ -81,7 +81,8 @@ export function RowSettingsContent() {
   return (
     <div className="rowsEditor">
       <p className="rowsEditorNote">
-        横列ごとに人数を設定してください。例: 「8」で8人、「5,E0.25,5」で5人+すき間+5人、「5,E2,5」ですき間をマス2個分に指定(小数も可・Eは人数に含みません)
+        横列ごとの人数を設定できます。空けたい部分は「E」をつけてください。<br />
+        例: 「3,E4,3」で3人+すき間4人分+3人
       </p>
       <div className="rowsList">
         {activePattern.rows.map((row, r) => (

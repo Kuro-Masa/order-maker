@@ -368,41 +368,43 @@ export function MemberPool() {
   return (
     <>
       <div className="memberPool">
-        <button type="button" className="poolImportTrigger" onClick={() => setDialogOpen(true)}>
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" aria-hidden="true">
-            <path d="M12 3v13M12 16l-4-4m4 4l4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M4 20h16" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-          メンバーを取り込む
-        </button>
+        <div className="poolImportRow">
+          <button type="button" className="poolImportTrigger" onClick={() => setDialogOpen(true)}>
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" aria-hidden="true">
+              <path d="M12 3v13M12 16l-4-4m4 4l4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 20h16" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            メンバーを取り込む
+          </button>
+          {members.length > 0 && (
+            <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
+          )}
+        </div>
         {members.length > 0 && (
-          <>
-            <div className="memberList">
-              {members.map((m) => (
-                <div
-                  key={m.id}
-                  className="memberChip"
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = "move";
-                    e.dataTransfer.setData("application/x-member", m.name);
-                    e.dataTransfer.setData("application/x-member-id", m.id);
-                  }}
-                  onPointerDown={(e) => handlePointerDown(e, m)}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                  onPointerCancel={handlePointerUp}
-                >
-                  <span className="chipName">{m.name}</span>
-                  <div className="chipParts">
-                    {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
-                    {m.part2 && <span className="chipPart chipPart2">{m.part2}</span>}
-                  </div>
+          <div className="memberList">
+            {members.map((m) => (
+              <div
+                key={m.id}
+                className="memberChip"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("application/x-member", m.name);
+                  e.dataTransfer.setData("application/x-member-id", m.id);
+                }}
+                onPointerDown={(e) => handlePointerDown(e, m)}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+              >
+                <span className="chipName">{m.name}</span>
+                <div className="chipParts">
+                  {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
+                  {m.part2 && <span className="chipPart chipPart2">{m.part2}</span>}
                 </div>
-              ))}
-            </div>
-            <button type="button" className="poolClearBtn" onClick={clearMembers}>メンバーをクリア</button>
-          </>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

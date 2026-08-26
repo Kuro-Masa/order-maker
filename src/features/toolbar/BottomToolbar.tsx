@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { ImageIcon, TrashIcon } from "../../icons";
-import { showsCenterLine } from "../../state/patternHelpers";
+import { CELL_W, GAP_X } from "../../constants";
+import { showsCenterLine, segmentsTotal } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
+import type { Pattern } from "../../types";
 import { RowSettingsContent } from "../settings/RowLayoutSettings";
 import { PartColorSettingsContent } from "../settings/PartColorSettings";
 import { MemberPool } from "../members/MemberPool";
@@ -78,11 +80,29 @@ function ShareOutputIcon() {
 
 // ── Mode panels ───────────────────────────────────────────────
 
+function bestLinePos(pattern: Pattern): number {
+  let maxCells = 0;
+  pattern.rows.forEach((row) => {
+    const n = segmentsTotal(row.segments);
+    if (n > maxCells) maxCells = n;
+  });
+  const halfW = Math.round((maxCells * CELL_W + Math.max(0, maxCells - 1) * GAP_X) / 2);
+  const existing = pattern.lines.map((l) => l.pos).sort((a, b) => a - b);
+  const sorted = [-halfW, ...existing, halfW];
+  let bestMid = 0;
+  let bestGap = -1;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const gap = sorted[i + 1] - sorted[i];
+    if (gap > bestGap) { bestGap = gap; bestMid = (sorted[i] + sorted[i + 1]) / 2; }
+  }
+  return Math.round(bestMid);
+}
+
 function MemberEditPanel() {
   const { clearAllNames } = useApp();
   return (
     <div className="panelContent memberEditPanel">
-      <p className="panelHint">マスをタップして名前を入力できます。Enterで次へ、Tabで隣のマスへ移動します。</p>
+      <p className="panelHint">マスをタップして名前を入力できます。</p>
       <MemberPool />
       <button type="button" className="btn danger" onClick={clearAllNames}>
         レイアウト上の名前をクリア
@@ -95,7 +115,7 @@ function SortPanel() {
   return (
     <div className="panelContent">
       <p className="panelHint">
-        入れ替えたい2つのマスを順にタップしてください。選択中のマスは黄色くハイライトされます。
+        入れ替えたい2つのマスを順にタップしてください。選択中のマスは青線で囲われます。
       </p>
     </div>
   );
@@ -104,26 +124,30 @@ function SortPanel() {
 function PaintPanel() {
   return (
     <div className="panelContent">
+      <p className="panelHint">声部の色を選択してからマスをタップすると色を塗れます。</p>
       <PartColorSettingsContent />
     </div>
   );
 }
 
 function LinesPanel() {
-  const { activePattern, toggleCenterLine, updateLinePos, removeLine } = useApp();
+  const { activePattern, toggleCenterLine, addLine, updateLinePos, removeLine } = useApp();
   return (
     <div className="panelContent">
-      <p className="panelHint">
-        空いている場所をタップして縦線を追加。追加した線はドラッグで移動できます。
-      </p>
-      <label className="conductorToggle">
-        <input
-          type="checkbox"
-          checked={showsCenterLine(activePattern)}
-          onChange={(e) => toggleCenterLine(e.target.checked)}
-        />
-        中心線を表示
-      </label>
+      <p className="panelHint">グリッド上の空いている場所をタップして縦線を追加。追加した線はドラッグで移動できます。</p>
+      <div className="linesActions">
+        <label className="conductorToggle">
+          <input
+            type="checkbox"
+            checked={showsCenterLine(activePattern)}
+            onChange={(e) => toggleCenterLine(e.target.checked)}
+          />
+          中心線を表示
+        </label>
+        <button type="button" className="btn" onClick={() => addLine(bestLinePos(activePattern))}>
+          縦線を追加
+        </button>
+      </div>
       {activePattern.lines.length > 0 && (
         <div className="linesList">
           {activePattern.lines.map((line) => (
@@ -154,7 +178,8 @@ function SharePanel() {
   const { exportImageFile } = useApp();
 
   return (
-    <div className="panelContent sharePanelContent">
+    <div className="panelContent">
+      <p className="panelHint">レイアウトを画像ファイルとして保存できます。</p>
       <button type="button" className="btn exportImageBtn" onClick={exportImageFile}>
         <ImageIcon />
         画像で出力
@@ -171,7 +196,7 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
   { id: "sort",  icon: <SortArrowsIcon />,  label: "入れ替え"   },
   { id: "paint", icon: <PaletteIcon />,     label: "色塗り"     },
   { id: "lines", icon: <VerticalLinesIcon />, label: "縦線"     },
-  { id: "share", icon: <ShareOutputIcon />, label: "出力・共有" },
+  { id: "share", icon: <ShareOutputIcon />, label: "出力"      },
 ];
 
 // ── Main export ───────────────────────────────────────────────
