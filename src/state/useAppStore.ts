@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Unsubscribe } from "firebase/firestore";
-import { DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT, PALETTE, PART_SCHEMES } from "../constants";
+import { CELL_W, DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT, GAP_X, PALETTE, PART_SCHEMES } from "../constants";
 import type { Mode, Pattern, PatternJson, Selected } from "../types";
 import { loadState, saveState } from "./persistence";
 import {
@@ -35,6 +35,7 @@ export function useAppStore() {
   const [selected, setSelected] = useState<Selected | null>(null);
   const [currentColor, setCurrentColor] = useState<string | null>(PALETTE[0]);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [toolbarMode, setToolbarMode] = useState<string>("names");
 
   const stateRef = useRef(state);
   const shareUnsubRef = useRef<Unsubscribe | null>(null);
@@ -216,6 +217,29 @@ export function useAppStore() {
       return { ...p, rows };
     });
     setSelected(null);
+  }
+
+  function addCellToRow(rowIndex: number, side: "left" | "right") {
+    updateActivePattern((p) => {
+      const rows = p.rows.slice();
+      const row = { ...rows[rowIndex] };
+      const segments = row.segments.slice();
+      const cells = row.cells.slice();
+      const newCell = { name: "", color: null };
+      // (CELL_W + GAP_X) / 2 px is how much the natural center shifts when row grows by one cell
+      const shiftDelta = (CELL_W + GAP_X) / 2 / 22; // in shift-units (1 unit = 22px)
+      if (side === "right") {
+        segments[segments.length - 1]++;
+        cells.push(newCell);
+        row.shift = (row.shift ?? 0) - shiftDelta;
+      } else {
+        segments[0]++;
+        cells.unshift(newCell);
+        row.shift = (row.shift ?? 0) + shiftDelta;
+      }
+      rows[rowIndex] = { ...row, segments, cells };
+      return { ...p, rows };
+    });
   }
 
   function toggleRowOnRiser(rowIndex: number, checked: boolean) {
@@ -566,6 +590,8 @@ export function useAppStore() {
     navigateToList,
     mode,
     changeMode,
+    toolbarMode,
+    setToolbarMode,
     selected,
     setSelected,
     currentColor,
@@ -579,6 +605,7 @@ export function useAppStore() {
     updateRowSpec,
     addRow,
     removeRow,
+    addCellToRow,
     toggleRowOnRiser,
     setRowShift,
     setPartScheme,

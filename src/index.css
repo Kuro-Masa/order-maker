@@ -96,8 +96,10 @@ svg {
 .topBar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  position: relative;
+  padding: 8px 12px;
+  flex-shrink: 0;
 }
 
 .tabBar {
@@ -477,6 +479,31 @@ svg {
   display: flex;
   gap: 2px;
   align-items: center;
+}
+
+.rowAddCellBtn {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  color: var(--muted, #999);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  margin: 0 4px;
+  padding: 0;
+  transition: border-color 0.13s, color 0.13s, background 0.13s;
+}
+
+.rowAddCellBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(58, 109, 240, 0.08);
 }
 
 
@@ -966,7 +993,10 @@ svg {
 ───────────────────────────────────────── */
 
 .patternNameInput {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
   text-align: center;
   border: none;
   background: none;
@@ -977,7 +1007,6 @@ svg {
   padding: 4px 8px;
   border-radius: 6px;
   outline: none;
-  min-width: 0;
 }
 
 .patternNameInput:hover {

@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 import { ImageIcon, JsonIcon, TrashIcon } from "../../icons";
 import { getActivePalette, showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
@@ -234,8 +234,7 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
 // ── Main export ───────────────────────────────────────────────
 
 export function BottomToolbar() {
-  const [toolbarMode, setToolbarMode] = useState<ToolbarMode>("names");
-  const { changeMode } = useApp();
+  const { changeMode, toolbarMode, setToolbarMode } = useApp();
 
   function selectMode(m: ToolbarMode) {
     setToolbarMode(m);
