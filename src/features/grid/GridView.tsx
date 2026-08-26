@@ -6,7 +6,7 @@ import { GuideLine } from "./GuideLine";
 import { useGridLayout } from "./useGridLayout";
 
 export function GridView() {
-  const { activePattern, mode, addLine, updateLinePos } = useApp();
+  const { activePattern, mode, addLine, updateLinePos, toolbarMode, setSelectedEditRow } = useApp();
   const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const cellsWrapRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -65,8 +65,9 @@ export function GridView() {
         {layout.risers.map((rect, i) => (
           <div
             key={i}
-            className="riserBg"
+            className={"riserBg" + (toolbarMode === "rows" ? " riserSelectable" : "")}
             style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
+            onClick={toolbarMode === "rows" ? () => setSelectedEditRow(rect.startRow) : undefined}
           />
         ))}
 

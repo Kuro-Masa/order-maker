@@ -247,6 +247,14 @@ export function useAppStore() {
     });
   }
 
+  function setRiserWidth(rowIndex: number, width: number | undefined) {
+    updateActivePattern((p) => {
+      const rows = p.rows.slice();
+      rows[rowIndex] = { ...rows[rowIndex], riserWidth: width };
+      return { ...p, rows };
+    });
+  }
+
   function setRowShift(rowIndex: number, shift: number) {
     updateActivePattern((p) => {
       const rows = p.rows.slice();
@@ -535,6 +543,7 @@ export function useAppStore() {
     removeRow,
     addCellToRow,
     toggleRowOnRiser,
+    setRiserWidth,
     setRowShift,
     setPartScheme,
     clearAllNames,

@@ -763,6 +763,63 @@ svg {
   background: color-mix(in srgb, var(--accent) 6%, var(--bg));
 }
 
+.rowEditLabel {
+  margin: 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.rowEditTopRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rowEditCounts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rowShiftInline {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.rowEditDelete {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+.riserToggleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.riserBg.riserSelectable {
+  cursor: pointer;
+  z-index: 0;
+  pointer-events: all;
+  transition: filter 0.12s;
+}
+
+.riserBg.riserSelectable:hover {
+  filter: brightness(0.92);
+}
+
 .addRowBtn {
   width: 100%;
   margin-bottom: 6px;

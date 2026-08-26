@@ -8,6 +8,7 @@ export interface RowData {
   gaps: number[];
   cells: CellData[];
   onRiser: boolean;
+  riserWidth?: number; // custom riser background width in cell units (undefined = auto)
   shift?: number; // -1 = left half-cell, 0 = center, 1 = right half-cell
 }
 

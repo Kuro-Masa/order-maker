@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { RISER_PAD } from "../../constants";
+import { CELL_W, GAP_X, RISER_PAD } from "../../constants";
 import { rowOnRiser } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 
@@ -8,6 +8,7 @@ export interface RiserRect {
   top: number;
   width: number;
   height: number;
+  startRow: number;
 }
 
 export interface LinesLayout {
@@ -74,7 +75,15 @@ export function useGridLayout(
       const endRect = wraps[end].getBoundingClientRect();
       const top = startRect.top - gridRect.top - RISER_PAD;
       const bottom = endRect.bottom - gridRect.top + RISER_PAD;
-      risers.push({ left, top, width, height: bottom - top });
+      const customCells = pattern.rows.slice(start, end + 1).find((r) => r.riserWidth != null)?.riserWidth;
+      let rLeft = left;
+      let rWidth = width;
+      if (customCells !== undefined) {
+        rWidth = customCells * (CELL_W + GAP_X) - GAP_X + RISER_PAD * 2;
+        const center = (minLeft + maxRight) / 2;
+        rLeft = center - rWidth / 2;
+      }
+      risers.push({ left: rLeft, top, width: rWidth, height: bottom - top, startRow: start });
     }
 
     // Align to the same center the conductor mark uses (row 0's unshifted
