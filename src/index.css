@@ -1278,8 +1278,31 @@ svg {
 
 /* ── Settings panel (below toolbar) ── */
 .modeSettingsPanel {
-  max-height: 260px;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+
+.panelResizeHandle {
+  height: 10px;
+  cursor: ns-resize;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  touch-action: none;
+  user-select: none;
+}
+.panelResizeHandle::after {
+  content: '';
+  width: 36px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--muted);
+  opacity: 0.35;
 }
 
 .panelContent {
@@ -1287,6 +1310,8 @@ svg {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .panelHint {
@@ -1324,7 +1349,33 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 14px;
+  padding: 4px 14px;
+  min-height: 32px;
+}
+
+.poolToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 0;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.poolChevron {
+  font-size: 13px;
+  color: var(--muted);
+  transition: transform 0.18s ease;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.poolChevron.collapsed {
+  transform: rotate(-90deg);
 }
 
 .poolLabel {

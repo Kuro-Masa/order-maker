@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ImageIcon, TrashIcon } from "../../icons";
 import { getActivePalette, showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
@@ -203,10 +204,33 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
 
 export function BottomToolbar() {
   const { changeMode, toolbarMode, setToolbarMode } = useApp();
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelHeight, setPanelHeight] = useState(200);
 
   function selectMode(m: ToolbarMode) {
-    setToolbarMode(m);
-    changeMode(STORE_MODE[m]);
+    if (toolbarMode === m) {
+      setPanelOpen(v => !v);
+    } else {
+      setToolbarMode(m);
+      changeMode(STORE_MODE[m]);
+      setPanelOpen(true);
+    }
+  }
+
+  function handleResizePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = panelHeight;
+    function onMove(ev: PointerEvent) {
+      const delta = startY - ev.clientY;
+      setPanelHeight(Math.max(80, Math.min(600, startH + delta)));
+    }
+    function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   }
 
   return (
@@ -225,14 +249,17 @@ export function BottomToolbar() {
           </button>
         ))}
       </div>
-      <div className="modeSettingsPanel">
-        {toolbarMode === "rows"  && <div className="panelContent"><RowSettingsContent /></div>}
-        {toolbarMode === "names" && <NamesPanel />}
-        {toolbarMode === "sort"  && <SortPanel />}
-        {toolbarMode === "paint" && <PaintPanel />}
-        {toolbarMode === "lines" && <LinesPanel />}
-        {toolbarMode === "share" && <SharePanel />}
-      </div>
+      {panelOpen && (
+        <div className="modeSettingsPanel" style={{ height: panelHeight }}>
+          <div className="panelResizeHandle" onPointerDown={handleResizePointerDown} />
+          {toolbarMode === "rows"  && <div className="panelContent"><RowSettingsContent /></div>}
+          {toolbarMode === "names" && <NamesPanel />}
+          {toolbarMode === "sort"  && <SortPanel />}
+          {toolbarMode === "paint" && <PaintPanel />}
+          {toolbarMode === "lines" && <LinesPanel />}
+          {toolbarMode === "share" && <SharePanel />}
+        </div>
+      )}
     </div>
   );
 }

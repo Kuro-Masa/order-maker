@@ -109,12 +109,22 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
 export function MemberPool() {
   const { members, clearMembers } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [poolOpen, setPoolOpen] = useState(true);
 
   return (
     <>
       <div className="memberPool">
         <div className="poolHeader">
-          <span className="poolLabel">メンバー {members.length > 0 && `(${members.length}人)`}</span>
+          <button
+            type="button"
+            className="poolToggleBtn"
+            onClick={() => setPoolOpen(v => !v)}
+            aria-expanded={poolOpen}
+            aria-label={poolOpen ? "メンバーを折りたたむ" : "メンバーを広げる"}
+          >
+            <span className={`poolChevron${poolOpen ? "" : " collapsed"}`}>▾</span>
+            <span className="poolLabel">メンバー {members.length > 0 && `(${members.length}人)`}</span>
+          </button>
           <div className="poolHeaderActions">
             {members.length > 0 && (
               <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
@@ -128,7 +138,7 @@ export function MemberPool() {
           </div>
         </div>
 
-        {members.length === 0 ? (
+        {poolOpen && (members.length === 0 ? (
           <button type="button" className="poolEmpty" onClick={() => setDialogOpen(true)}>
             <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" aria-hidden="true">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeWidth="1.6" strokeLinecap="round" />
@@ -159,7 +169,7 @@ export function MemberPool() {
               </div>
             ))}
           </div>
-        )}
+        ))}
       </div>
 
       {dialogOpen && <ImportDialog onClose={() => setDialogOpen(false)} />}
