@@ -1,22 +1,18 @@
 import { useEffect, useState } from "react";
 import { RowsAccordionIcon, TrashIcon } from "../../icons";
-import { computeTotals, rowOnRiser, showsConductor } from "../../state/patternHelpers";
+import { rowOnRiser, segmentsTotal } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 import { Accordion } from "./Accordion";
 
-function RowEditorItem({
+function RowEditorPanel({
   row,
-  rowIndex,
   onSpecChange,
-  onRemove,
   onRiserToggle,
   onShiftChange,
 }: {
   row: RowData;
-  rowIndex: number;
   onSpecChange: (spec: string) => void;
-  onRemove: () => void;
   onRiserToggle: (checked: boolean) => void;
   onShiftChange: (shift: number) => void;
 }) {
@@ -40,15 +36,11 @@ function RowEditorItem({
   }, [row]);
 
   function commitSingle(val: string) {
-    const n = parseInt(val) || 0;
-    onSpecChange(String(n));
+    onSpecChange(String(parseInt(val) || 0));
   }
 
   function commitGap(l: string, g: string, r: string) {
-    const ln = parseInt(l) || 0;
-    const rn = parseInt(r) || 0;
-    const gn = parseFloat(g) || 1;
-    onSpecChange(`${ln},E${gn},${rn}`);
+    onSpecChange(`${parseInt(l) || 0},E${parseFloat(g) || 1},${parseInt(r) || 0}`);
   }
 
   function toggleGap(on: boolean) {
@@ -57,28 +49,19 @@ function RowEditorItem({
       const n = parseInt(count) || 0;
       const l = Math.floor(n / 2);
       const r = n - l;
-      const g = "4";
       setLeftCount(String(l));
       setRightCount(String(r));
-      setGapSize(g);
-      onSpecChange(`${l},E${g},${r}`);
+      setGapSize("4");
+      onSpecChange(`${l},E4,${r}`);
     } else {
       const total = (parseInt(leftCount) || 0) + (parseInt(rightCount) || 0);
-      const s = String(total);
-      setCount(s);
-      onSpecChange(s);
+      setCount(String(total));
+      onSpecChange(String(total));
     }
   }
 
   return (
-    <div className="rowItem">
-      <div className="rowItemHeader">
-        <span className="rowIndexLabel">{rowIndex + 1}列目</span>
-        <button type="button" className="btn remove" aria-label="この行を削除" onClick={onRemove}>
-          <TrashIcon />
-        </button>
-      </div>
-
+    <div className="rowEditPanel">
       {hasGap ? (
         <div className="rowSpecGap">
           <input
@@ -116,7 +99,6 @@ function RowEditorItem({
           <span className="rowSpecGapLabel">人</span>
         </div>
       )}
-
       {hasGap && (
         <div className="rowGapSizeRow">
           <span className="rowSpecGapLabel">すき間の幅:</span>
@@ -133,15 +115,13 @@ function RowEditorItem({
           <span className="rowSpecGapLabel">人分</span>
         </div>
       )}
-
       <label className="gapToggle">
         <input type="checkbox" checked={hasGap} onChange={(e) => toggleGap(e.target.checked)} />
         左右に分けて間を開ける
       </label>
-
-      <label className="riserToggle">
+      <label className="gapToggle">
         <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
-        段に乗る(プレビューに背景を表示)
+        段に乗る
       </label>
       <div className="rowShiftControl">
         <span className="rowShiftLabel">横位置:</span>
@@ -161,39 +141,69 @@ function RowEditorItem({
 }
 
 export function RowSettingsContent() {
-  const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, setRowShift, addRow, toggleConductor } = useApp();
-  const { cellsTotal, mismatch } = computeTotals(activePattern);
+  const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, setRowShift, addRow } = useApp();
+  const [selectedRow, setSelectedRow] = useState<number | null>(null);
+
+  const rows = activePattern.rows;
+  const displayOrder = [...rows.keys()].reverse();
+
+  useEffect(() => {
+    if (selectedRow !== null && selectedRow >= rows.length) {
+      setSelectedRow(rows.length > 0 ? rows.length - 1 : null);
+    }
+  }, [rows.length, selectedRow]);
 
   return (
     <div className="rowsEditor">
       <p className="rowsEditorNote">
-        横列ごとの人数を設定できます。「左右に分けて間を開ける」で左右に分割できます。
+        横列ごとの人数を設定できます。行をタップして編集。
       </p>
-      <div className="rowsList">
-        {activePattern.rows.map((row, r) => (
-          <RowEditorItem
-            key={r}
-            row={row}
-            rowIndex={r}
-            onSpecChange={(spec) => updateRowSpec(r, spec)}
-            onRemove={() => removeRow(r)}
-            onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}
-            onShiftChange={(shift) => setRowShift(r, shift)}
-          />
-        ))}
+      <div className="stageView">
+        {displayOrder.map((r) => {
+          const row = rows[r];
+          const total = segmentsTotal(row.segments);
+          const isSelected = selectedRow === r;
+          return (
+            <div
+              key={r}
+              className={"stageRow" + (isSelected ? " selected" : "")}
+              onClick={() => setSelectedRow(isSelected ? null : r)}
+            >
+              <div className="stageRowCells">
+                {Array.from({ length: Math.min(total, 24) }, (_, i) => (
+                  <div key={i} className="stageRowDot" />
+                ))}
+                {total > 24 && <span className="stageRowMore">+{total - 24}</span>}
+              </div>
+              <span className="stageRowCount">{total}人</span>
+              <button
+                type="button"
+                className="btn remove stageRowRemove"
+                aria-label="この行を削除"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeRow(r);
+                  if (selectedRow === r) setSelectedRow(null);
+                }}
+              >
+                <TrashIcon />
+              </button>
+            </div>
+          );
+        })}
       </div>
-      <button type="button" className="btn" onClick={addRow}>
+      {selectedRow !== null && selectedRow < rows.length && (
+        <RowEditorPanel
+          key={selectedRow}
+          row={rows[selectedRow]}
+          onSpecChange={(spec) => updateRowSpec(selectedRow, spec)}
+          onRiserToggle={(checked) => toggleRowOnRiser(selectedRow, checked)}
+          onShiftChange={(shift) => setRowShift(selectedRow, shift)}
+        />
+      )}
+      <button type="button" className="btn addRowBtn" onClick={addRow}>
         ＋ 行を追加
       </button>
-      <p className={"partTotalSummary" + (mismatch ? " mismatch" : "")}>マスの数: {cellsTotal}個</p>
-      <label className="conductorToggle">
-        <input
-          type="checkbox"
-          checked={showsConductor(activePattern)}
-          onChange={(e) => toggleConductor(e.target.checked)}
-        />
-        一番下の中央に指揮者マークを表示
-      </label>
     </div>
   );
 }

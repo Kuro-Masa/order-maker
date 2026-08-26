@@ -1,5 +1,5 @@
 import { useRef, useLayoutEffect, type MouseEvent } from "react";
-import { rowShiftPx, showsCenterLine, showsConductor } from "../../state/patternHelpers";
+import { rowShiftPx, showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
 import { GuideLine } from "./GuideLine";
@@ -54,15 +54,13 @@ export function GridView() {
           />
         ))}
 
-        {showsConductor(activePattern) && (
-          <div
-            className="conductorMark"
+        <div
+          className="conductorMark"
           style={lastShift !== 0 ? { transform: `translateX(${lastShift}px)` } : undefined}
-            title="指揮者(この位置が前)"
-          >
-            指揮
-          </div>
-        )}
+          title="指揮者(この位置が前)"
+        >
+          指揮
+        </div>
 
         {layout.risers.map((rect, i) => (
           <div
