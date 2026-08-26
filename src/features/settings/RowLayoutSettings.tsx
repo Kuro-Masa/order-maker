@@ -1,26 +1,22 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { RowsAccordionIcon, TrashIcon } from "../../icons";
-import { computeTotals, rowIsOffset, rowOnRiser, serializeRowSpec, showsConductor } from "../../state/patternHelpers";
+import { computeTotals, rowOnRiser, serializeRowSpec, showsConductor } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 import { Accordion } from "./Accordion";
 
 function RowEditorItem({
   row,
-  r,
-  isLast,
   onSpecChange,
   onRemove,
   onRiserToggle,
-  onStaggerToggle,
+  onShiftChange,
 }: {
   row: RowData;
-  r: number;
-  isLast: boolean;
   onSpecChange: (spec: string) => void;
   onRemove: () => void;
   onRiserToggle: (checked: boolean) => void;
-  onStaggerToggle: (checked: boolean) => void;
+  onShiftChange: (shift: number) => void;
 }) {
   const [text, setText] = useState(serializeRowSpec(row));
 
@@ -62,18 +58,24 @@ function RowEditorItem({
         <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
         段に乗る(プレビューに背景を表示)
       </label>
-      {!isLast && (
-        <label className="riserToggle">
-          <input type="checkbox" checked={rowIsOffset(row, r)} onChange={(e) => onStaggerToggle(e.target.checked)} />
-          前列から半歩ずらす
-        </label>
-      )}
+      <div className="rowShiftControl">
+        <span className="rowShiftLabel">横位置:</span>
+        {([-1, 0, 1] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            className={"btn rowShiftBtn" + ((row.shift ?? 0) === v ? " active" : "")}
+            onClick={() => onShiftChange(v)}
+          >
+            {v === -1 ? "←" : v === 0 ? "中央" : "→"}
+          </button>
+        ))}</div>
     </div>
   );
 }
 
 export function RowLayoutSettings() {
-  const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, toggleRowStagger, addRow, toggleConductor } = useApp();
+  const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, setRowShift, addRow, toggleConductor } = useApp();
   const { cellsTotal, mismatch } = computeTotals(activePattern);
 
   return (
@@ -87,12 +89,10 @@ export function RowLayoutSettings() {
             <RowEditorItem
               key={r}
               row={row}
-              r={r}
-              isLast={r === activePattern.rows.length - 1}
               onSpecChange={(spec) => updateRowSpec(r, spec)}
               onRemove={() => removeRow(r)}
               onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}
-              onStaggerToggle={(checked) => toggleRowStagger(r, checked)}
+              onShiftChange={(shift) => setRowShift(r, shift)}
             />
           ))}
         </div>

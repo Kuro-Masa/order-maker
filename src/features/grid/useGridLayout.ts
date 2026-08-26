@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { CELL_W, RISER_PAD } from "../../constants";
-import { rowIsOffset, rowOnRiser } from "../../state/patternHelpers";
+import { RISER_PAD } from "../../constants";
+import { rowOnRiser } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 
 export interface RiserRect {
@@ -80,16 +80,13 @@ export function useGridLayout(
     // Align to the same center the conductor mark uses (row 0's unshifted
     // center, shifted to match the last row's parity), not the riser
     // background's full-extent span, so the two visually coincide.
-    const row0Rect = wraps[0].getBoundingClientRect();
-    const row0Center = (row0Rect.left + row0Rect.right) / 2 - gridRect.left;
-    const lastRow = pattern.rows[pattern.rows.length - 1];
-    const lastRowIsOffset = lastRow ? rowIsOffset(lastRow, pattern.rows.length - 1) : false;
-    const center = row0Center + (lastRowIsOffset ? CELL_W / 2 : 0);
+    const lastWrap = wraps[wraps.length - 1];
+    const lastWrapRect = lastWrap.getBoundingClientRect();
+    const center = (lastWrapRect.left + lastWrapRect.right) / 2 - gridRect.left;
 
     const firstRect = wraps[0].getBoundingClientRect();
-    const lastRect = wraps[wraps.length - 1].getBoundingClientRect();
     const top = firstRect.top - gridRect.top;
-    const bottom = lastRect.bottom - gridRect.top;
+    const bottom = lastWrapRect.bottom - gridRect.top;
 
     commitLayout({ risers, lines: { center, top, bottom } });
   });

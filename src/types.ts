@@ -8,7 +8,7 @@ export interface RowData {
   gaps: number[];
   cells: CellData[];
   onRiser: boolean;
-  stagger?: boolean;
+  shift?: number; // -1 = left half-cell, 0 = center, 1 = right half-cell
 }
 
 export interface LineData {
@@ -61,6 +61,8 @@ export interface PatternJson {
     segments?: number[];
     gaps?: number[];
     onRiser?: boolean;
+    shift?: number;
+    stagger?: boolean;
     cells?: { name?: string; color?: string | null }[];
   }[];
   updatedAt?: unknown;

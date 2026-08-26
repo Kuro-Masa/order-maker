@@ -19,11 +19,11 @@ export function segmentsTotal(segments: number[]): number {
   return segments.reduce((a, b) => a + b, 0);
 }
 
-export function rowIsOffset(row: RowData, fallbackIndex: number): boolean {
-  return row.stagger ?? (fallbackIndex % 2 === 1);
+export function rowShiftPx(row: RowData): number {
+  return (row.shift ?? 0) * 22;
 }
 
-export function createRow(segments: number[], gaps?: number[], stagger?: boolean): RowData {
+export function createRow(segments: number[], gaps?: number[]): RowData {
   const total = segmentsTotal(segments);
   const cells: CellData[] = [];
   for (let i = 0; i < total; i++) {
@@ -32,13 +32,13 @@ export function createRow(segments: number[], gaps?: number[], stagger?: boolean
   const normalizedGaps = gaps
     ? gaps.slice()
     : segments.slice(1).map(() => DEFAULT_GAP_CELLS);
-  return { segments: segments.slice(), gaps: normalizedGaps, cells, onRiser: false, stagger: stagger ?? false };
+  return { segments: segments.slice(), gaps: normalizedGaps, cells, onRiser: false, shift: 0 };
 }
 
 export function createPattern(name: string, rowCount: number, colCount: number): Pattern {
   const rows: RowData[] = [];
   for (let i = 0; i < rowCount; i++) {
-    rows.push(createRow([colCount], undefined, i % 2 === 1));
+    rows.push(createRow([colCount]));
   }
   return {
     id: makeId(),

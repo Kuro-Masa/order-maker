@@ -159,8 +159,7 @@ export function useAppStore() {
     updateActivePattern((p) => {
       const lastRow = p.rows[p.rows.length - 1];
       const colCount = lastRow ? segmentsTotal(lastRow.segments) : DEFAULT_COL_COUNT;
-      const newStagger = p.rows.length % 2 === 1;
-      return { ...p, rows: [...p.rows, createRow([colCount], undefined, newStagger)] };
+      return { ...p, rows: [...p.rows, createRow([colCount])] };
     });
   }
 
@@ -181,11 +180,10 @@ export function useAppStore() {
     });
   }
 
-  function toggleRowStagger(rowIndex: number, checked: boolean) {
+  function setRowShift(rowIndex: number, shift: number) {
     updateActivePattern((p) => {
-      if (rowIndex === p.rows.length - 1) return p;
       const rows = p.rows.slice();
-      rows[rowIndex] = { ...rows[rowIndex], stagger: checked };
+      rows[rowIndex] = { ...rows[rowIndex], shift };
       return { ...p, rows };
     });
   }
@@ -516,7 +514,7 @@ export function useAppStore() {
     addRow,
     removeRow,
     toggleRowOnRiser,
-    toggleRowStagger,
+    setRowShift,
     setPartScheme,
     setPartCount,
     autoColorizeByParts,

@@ -444,6 +444,28 @@ svg {
   touch-action: none;
 }
 
+.rowShiftControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+.rowShiftLabel {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.rowShiftBtn {
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  min-width: 44px;
+}
+.rowShiftBtn.active {
+  background: var(--accent, #1976d2);
+  color: #fff;
+  border-color: var(--accent, #1976d2);
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -455,10 +477,6 @@ svg {
   align-items: center;
 }
 
-.row.offset,
-.conductorMark.offset {
-  transform: translateX(22px);
-}
 
 .segmentGap {
   width: 20px;

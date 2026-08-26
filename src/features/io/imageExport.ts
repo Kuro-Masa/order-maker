@@ -10,7 +10,7 @@ import {
   RISER_COLOR,
   RISER_PAD,
 } from "../../constants";
-import { getGapPx, maxRowWidthPx, rowContentWidthPx, rowIsOffset, rowOnRiser, showsCenterLine, showsConductor } from "../../state/patternHelpers";
+import { getGapPx, maxRowWidthPx, rowContentWidthPx, rowOnRiser, rowShiftPx, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 import { downloadBlob, fileBaseName } from "./download";
 
@@ -75,7 +75,7 @@ export function exportImage(pattern: Pattern) {
   let minLeft = Infinity;
   let maxRight = -Infinity;
   pattern.rows.forEach((_row, r) => {
-    const rowBaseX = padding + (maxRowWidth - rowWidths[r]) / 2 + (rowIsOffset(pattern.rows[r], r) ? offsetShift : 0);
+    const rowBaseX = padding + (maxRowWidth - rowWidths[r]) / 2 + rowShiftPx(pattern.rows[r]);
     minLeft = Math.min(minLeft, rowBaseX);
     maxRight = Math.max(maxRight, rowBaseX + rowWidths[r]);
   });
@@ -103,7 +103,7 @@ export function exportImage(pattern: Pattern) {
 
   pattern.rows.forEach((row, r) => {
     const y = padding + titleH + r * (cellH + gapY);
-    const baseX = padding + (maxRowWidth - rowWidths[r]) / 2 + (rowIsOffset(pattern.rows[r], r) ? offsetShift : 0);
+    const baseX = padding + (maxRowWidth - rowWidths[r]) / 2 + rowShiftPx(pattern.rows[r]);
     let x = baseX;
 
     let cellIdx = 0;
@@ -133,8 +133,7 @@ export function exportImage(pattern: Pattern) {
   // center, shifted to match the last row's parity), not the riser
   // background's full-extent span, so the two visually coincide.
   const linesLastRow = pattern.rows[pattern.rows.length - 1];
-  const linesLastRowIsOffset = linesLastRow ? rowIsOffset(linesLastRow, pattern.rows.length - 1) : false;
-  const linesCenter = padding + maxRowWidth / 2 + (linesLastRowIsOffset ? offsetShift : 0);
+  const linesCenter = padding + maxRowWidth / 2 + (linesLastRow ? rowShiftPx(linesLastRow) : 0);
 
   if (showsCenterLine(pattern)) {
     ctx.strokeStyle = CENTER_LINE_COLOR;
@@ -159,8 +158,7 @@ export function exportImage(pattern: Pattern) {
     const markY =
       padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY + markGapY;
     const lastRow = pattern.rows[pattern.rows.length - 1];
-    const lastRowIsOffset = lastRow ? rowIsOffset(lastRow, pattern.rows.length - 1) : false;
-    const markCx = padding + maxRowWidth / 2 + (lastRowIsOffset ? offsetShift : 0);
+    const markCx = padding + maxRowWidth / 2 + (lastRow ? rowShiftPx(lastRow) : 0);
     const markCy = markY + markH / 2;
     ctx.fillStyle = CELL_TEXT_COLOR;
     ctx.beginPath();

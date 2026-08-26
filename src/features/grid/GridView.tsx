@@ -1,5 +1,5 @@
 import { useRef, type MouseEvent } from "react";
-import { rowIsOffset, showsCenterLine, showsConductor } from "../../state/patternHelpers";
+import { rowShiftPx, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
 import { GuideLine } from "./GuideLine";
@@ -31,7 +31,7 @@ export function GridView() {
   }
 
   const lastRow = activePattern.rows[activePattern.rows.length - 1];
-  const lastRowIsOffset = lastRow ? rowIsOffset(lastRow, activePattern.rows.length - 1) : false;
+  const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
 
   return (
     <section className="gridWrap">
@@ -49,7 +49,8 @@ export function GridView() {
 
         {showsConductor(activePattern) && (
           <div
-            className={"conductorMark" + (lastRowIsOffset ? " offset" : "")}
+            className="conductorMark"
+          style={lastShift !== 0 ? { transform: `translateX(${lastShift}px)` } : undefined}
             title="指揮者(この位置が前)"
           >
             指揮

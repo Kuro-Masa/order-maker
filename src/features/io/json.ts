@@ -13,6 +13,7 @@ export function buildPatternData(pattern: Pattern) {
       segments: row.segments,
       gaps: row.gaps,
       onRiser: !!row.onRiser,
+      shift: row.shift ?? 0,
       cells: row.cells,
     })),
   };
@@ -52,7 +53,8 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
             });
           }
 
-          return { segments, gaps, cells, onRiser: !!r.onRiser };
+          const shift = typeof r.shift === "number" ? r.shift : (r.stagger ? 1 : 0);
+          return { segments, gaps, cells, onRiser: !!r.onRiser, shift };
         })
       : [createRow([DEFAULT_COL_COUNT])];
 

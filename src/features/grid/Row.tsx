@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { getGapPx, rowIsOffset } from "../../state/patternHelpers";
+import { getGapPx, rowShiftPx } from "../../state/patternHelpers";
 import type { RowData } from "../../types";
 import { Cell } from "./Cell";
 
@@ -14,7 +14,7 @@ export function Row({
 }) {
   let cellIdx = 0;
   return (
-    <div className={"row" + (rowIsOffset(row, r) ? " offset" : "")}>
+    <div className="row" style={rowShiftPx(row) !== 0 ? { transform: `translateX(${rowShiftPx(row)}px)` } : undefined}>
       <div className="cellsWrap" ref={cellsWrapRef}>
         {row.segments.map((segLen, segIdx) => (
           <Fragment key={segIdx}>
