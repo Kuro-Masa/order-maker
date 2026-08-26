@@ -3,6 +3,7 @@ import { TopBar } from "./features/topbar/TopBar";
 import { BottomToolbar } from "./features/toolbar/BottomToolbar";
 import { GridView } from "./features/grid/GridView";
 import { ListScreen } from "./screens/ListScreen";
+import { MemberChipsArea } from "./features/members/MemberPool";
 
 function ShareBanner() {
   const { shareUrl, dismissShareUrl } = useApp();
@@ -19,6 +20,7 @@ function ShareBanner() {
 }
 
 function EditScreen() {
+  const { toolbarMode, members } = useApp();
   return (
     <div className="editScreen">
       <h1 className="sr-only">オーダーメーカー</h1>
@@ -26,6 +28,12 @@ function EditScreen() {
       <ShareBanner />
       <div className="editBody">
         <GridView />
+        {toolbarMode === "names" && members.length > 0 && (
+          <div className="unplacedMembersArea">
+            <p className="unplacedMembersTitle">配置していないメンバー</p>
+            <MemberChipsArea />
+          </div>
+        )}
       </div>
       <BottomToolbar />
     </div>

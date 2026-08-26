@@ -401,7 +401,7 @@ svg {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 10px 22px 4px 10px;
+  padding: 16px 22px 4px 10px;
   width: max-content;
   margin: 0 auto;
 }
@@ -410,10 +410,15 @@ svg {
   position: absolute;
   z-index: -1;
   background: #d9c7a8;
-  border: 1px solid #b3987a;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 8px;
 }
+
+@media (prefers-color-scheme: dark) {
+  .riserBg { background: #4a3c28; }
+}
+
+:root[data-theme="dark"] .riserBg { background: #4a3c28; }
+:root[data-theme="light"] .riserBg { background: #d9c7a8; }
 
 .guideLine {
   position: absolute;
@@ -483,6 +488,11 @@ svg {
 
 .row.rowSelectedForEdit {
   box-shadow: 0 0 0 6px var(--accent);
+}
+
+.row.rowSelectable .cell {
+  cursor: pointer;
+  user-select: none;
 }
 
 .cellsWrap {
@@ -1572,26 +1582,44 @@ svg {
 
 .poolClearBtn:hover { color: #c0392b; }
 
-.memberList {
-  display: flex;
-  gap: 6px;
-  padding: 2px 14px 10px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.unplacedMembersArea {
+  padding: 4px 16px 16px;
 }
 
-.memberList::-webkit-scrollbar { height: 0; }
+.unplacedMembersTitle {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.memberChipsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 
 .memberChip {
   flex-shrink: 0;
-  background: var(--bg);
-  border: 0.5px solid var(--border);
-  border-radius: 8px;
-  padding: 5px 8px;
-  min-width: 54px;
+  width: 44px;
+  height: 52px;
+  background: var(--cell-bg);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 3px 2px;
   cursor: grab;
   user-select: none;
   touch-action: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.memberChip:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .memberChip:active {
@@ -1600,24 +1628,28 @@ svg {
 }
 
 .chipName {
-  font-size: 12px;
+  font-size: 0.65rem;
   font-weight: 500;
   color: var(--text);
-  white-space: nowrap;
+  text-align: center;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
   display: block;
 }
 
 .chipParts {
   display: flex;
-  gap: 3px;
-  margin-top: 3px;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .chipPart {
-  font-size: 10px;
+  font-size: 9px;
   border-radius: 3px;
-  padding: 1px 4px;
+  padding: 1px 3px;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .chipPart1 { background: #e8d8f8; color: #6b3aab; }

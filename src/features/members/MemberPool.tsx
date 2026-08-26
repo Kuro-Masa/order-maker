@@ -358,12 +358,49 @@ function useTouchDrag() {
   return { handlePointerDown, handlePointerMove, handlePointerUp };
 }
 
-// ── Member pool ────────────────────────────────────────────────
+// ── Member chips area (rendered below the grid) ───────────────
+
+export function MemberChipsArea() {
+  const { members } = useApp();
+  const { handlePointerDown, handlePointerMove, handlePointerUp } = useTouchDrag();
+
+  if (members.length === 0) return null;
+
+  return (
+    <div className="memberChipsGrid">
+      {members.map((m) => (
+        <div
+          key={m.id}
+          className="memberChip"
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("application/x-member", m.name);
+            e.dataTransfer.setData("application/x-member-id", m.id);
+          }}
+          onPointerDown={(e) => handlePointerDown(e, m)}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
+          <span className="chipName">{m.name}</span>
+          {(m.part1 || m.part2) && (
+            <div className="chipParts">
+              {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
+              {m.part2 && <span className="chipPart chipPart2">{m.part2}</span>}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Member pool (import / clear — shown in the panel) ─────────
 
 export function MemberPool() {
   const { members, clearMembers } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { handlePointerDown, handlePointerMove, handlePointerUp } = useTouchDrag();
 
   return (
     <>
@@ -380,32 +417,6 @@ export function MemberPool() {
             <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
           )}
         </div>
-        {members.length > 0 && (
-          <div className="memberList">
-            {members.map((m) => (
-              <div
-                key={m.id}
-                className="memberChip"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = "move";
-                  e.dataTransfer.setData("application/x-member", m.name);
-                  e.dataTransfer.setData("application/x-member-id", m.id);
-                }}
-                onPointerDown={(e) => handlePointerDown(e, m)}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
-              >
-                <span className="chipName">{m.name}</span>
-                <div className="chipParts">
-                  {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
-                  {m.part2 && <span className="chipPart chipPart2">{m.part2}</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {dialogOpen && <ImportDialog onClose={() => setDialogOpen(false)} />}
