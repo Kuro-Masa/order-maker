@@ -198,14 +198,10 @@ export function ListScreen() {
       <aside className="listSidebar">
         <div className="listSidebarHead">
           <div className="listSidebarMark">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path
-                d="M3 12V5.5L8 3l5 2.5V12M8 3v9M3 12l5 2 5-2"
-                stroke="#fff"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="15" height="13" viewBox="0 0 15 13" fill="none" aria-hidden="true">
+              <rect x="0" y="0" width="15" height="3" rx="1.5" fill="white"/>
+              <rect x="1.5" y="5" width="12" height="3" rx="1.5" fill="white" opacity="0.78"/>
+              <rect x="4" y="10" width="7" height="3" rx="1.5" fill="white" opacity="0.55"/>
             </svg>
           </div>
           <span className="listSidebarName">オーダーメーカー</span>
