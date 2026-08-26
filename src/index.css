@@ -1322,55 +1322,27 @@ svg {
 
 .memberPool {
   flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  background: var(--panel-bg);
 }
 
-.poolHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 14px;
-  min-height: 32px;
-}
-
-.poolToggleBtn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.poolImportTrigger {
   appearance: none;
-  border: none;
+  border: 1.5px dashed var(--border);
   background: none;
+  border-radius: 10px;
+  padding: 10px 16px;
   cursor: pointer;
-  padding: 2px 0;
-  color: inherit;
-  flex: 1;
-  min-width: 0;
-}
-
-.poolChevron {
-  font-size: 13px;
-  color: var(--muted);
-  transition: transform 0.18s ease;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.poolChevron.collapsed {
-  transform: rotate(-90deg);
-}
-
-.poolLabel {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: .04em;
-}
-
-.poolHeaderActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
 }
+
+.poolImportTrigger:hover { border-color: var(--accent); }
 
 .poolClearBtn {
   appearance: none;
@@ -1381,53 +1353,11 @@ svg {
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
+  font-family: inherit;
+  margin-top: 4px;
 }
 
 .poolClearBtn:hover { color: #c0392b; }
-
-.poolImportBtn {
-  appearance: none;
-  border: 0.5px solid var(--accent);
-  background: rgba(58, 109, 240, 0.08);
-  color: var(--accent);
-  font-size: 11px;
-  border-radius: 5px;
-  padding: 3px 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: inherit;
-}
-
-.poolEmpty {
-  appearance: none;
-  background: none;
-  border: 1.5px dashed var(--border);
-  border-radius: 10px;
-  margin: 0 12px 10px;
-  padding: 12px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: calc(100% - 24px);
-  font-family: inherit;
-}
-
-.poolEmpty:hover { border-color: var(--accent); }
-
-.poolEmptyText {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.poolEmptyCta {
-  font-size: 12px;
-  color: var(--accent);
-  font-weight: 500;
-}
 
 .memberList {
   display: flex;

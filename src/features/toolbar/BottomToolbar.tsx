@@ -30,10 +30,12 @@ function TableLayoutIcon() {
   );
 }
 
-function PencilIcon() {
+function MembersIcon() {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true">
-      <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="9" cy="7" r="4" strokeWidth="1.8" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -80,12 +82,10 @@ function MemberEditPanel() {
   const { clearAllNames } = useApp();
   return (
     <div className="panelContent memberEditPanel">
+      <p className="panelHint">マスをタップして名前を入力できます。Enterで次へ、Tabで隣のマスへ移動します。</p>
       <MemberPool />
-      <p className="panelHint" style={{ marginTop: 8 }}>
-        マスをタップして名前を入力できます。Enterで次へ、Tabで隣のマスへ移動します。
-      </p>
-      <button type="button" className="btn" onClick={clearAllNames}>
-        名前を全消去
+      <button type="button" className="btn danger" onClick={clearAllNames}>
+        レイアウト上の名前をクリア
       </button>
     </div>
   );
@@ -167,7 +167,7 @@ function SharePanel() {
 
 const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
   { id: "rows",  icon: <TableLayoutIcon />, label: "列の編集"   },
-  { id: "names", icon: <PencilIcon />,      label: "メンバー編集" },
+  { id: "names", icon: <MembersIcon />,     label: "メンバー編集" },
   { id: "sort",  icon: <SortArrowsIcon />,  label: "入れ替え"   },
   { id: "paint", icon: <PaletteIcon />,     label: "色塗り"     },
   { id: "lines", icon: <VerticalLinesIcon />, label: "縦線"     },

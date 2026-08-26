@@ -363,65 +363,47 @@ function useTouchDrag() {
 export function MemberPool() {
   const { members, clearMembers } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [poolOpen, setPoolOpen] = useState(true);
   const { handlePointerDown, handlePointerMove, handlePointerUp } = useTouchDrag();
 
   return (
     <>
       <div className="memberPool">
-        <div className="poolHeader">
-          <button
-            type="button"
-            className="poolToggleBtn"
-            onClick={() => setPoolOpen((v) => !v)}
-            aria-expanded={poolOpen}
-            aria-label={poolOpen ? "メンバーを折りたたむ" : "メンバーを広げる"}
-          >
-            <span className={`poolChevron${poolOpen ? "" : " collapsed"}`}>▾</span>
-            <span className="poolLabel">メンバー {members.length > 0 && `(${members.length}人)`}</span>
-          </button>
-          <div className="poolHeaderActions">
-            {members.length > 0 && (
-              <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
-            )}
-          </div>
-        </div>
-
-        {poolOpen && (members.length === 0 ? (
-          <button type="button" className="poolEmpty" onClick={() => setDialogOpen(true)}>
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" aria-hidden="true">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" strokeWidth="1.6" strokeLinecap="round" />
-              <circle cx="9" cy="7" r="4" strokeWidth="1.6" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-            <span className="poolEmptyCta">メンバーを取り込む</span>
-          </button>
-        ) : (
-          <div className="memberList">
-            {members.map((m) => (
-              <div
-                key={m.id}
-                className="memberChip"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = "move";
-                  e.dataTransfer.setData("application/x-member", m.name);
-                  e.dataTransfer.setData("application/x-member-id", m.id);
-                }}
-                onPointerDown={(e) => handlePointerDown(e, m)}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
-              >
-                <span className="chipName">{m.name}</span>
-                <div className="chipParts">
-                  {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
-                  {m.part2 && <span className="chipPart chipPart2">{m.part2}</span>}
+        <button type="button" className="poolImportTrigger" onClick={() => setDialogOpen(true)}>
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" aria-hidden="true">
+            <path d="M12 3v13M12 16l-4-4m4 4l4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 20h16" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          メンバーを取り込む
+        </button>
+        {members.length > 0 && (
+          <>
+            <div className="memberList">
+              {members.map((m) => (
+                <div
+                  key={m.id}
+                  className="memberChip"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("application/x-member", m.name);
+                    e.dataTransfer.setData("application/x-member-id", m.id);
+                  }}
+                  onPointerDown={(e) => handlePointerDown(e, m)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                >
+                  <span className="chipName">{m.name}</span>
+                  <div className="chipParts">
+                    {m.part1 && <span className="chipPart chipPart1">{m.part1}</span>}
+                    {m.part2 && <span className="chipPart chipPart2">{m.part2}</span>}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ))}
+              ))}
+            </div>
+            <button type="button" className="poolClearBtn" onClick={clearMembers}>メンバーをクリア</button>
+          </>
+        )}
       </div>
 
       {dialogOpen && <ImportDialog onClose={() => setDialogOpen(false)} />}
