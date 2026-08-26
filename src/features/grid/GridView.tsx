@@ -1,4 +1,4 @@
-import { useRef, type MouseEvent } from "react";
+import { useRef, useLayoutEffect, type MouseEvent } from "react";
 import { rowShiftPx, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
@@ -7,9 +7,16 @@ import { useGridLayout } from "./useGridLayout";
 
 export function GridView() {
   const { activePattern, mode, addLine, updateLinePos } = useApp();
+  const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const cellsWrapRefs = useRef<(HTMLDivElement | null)[]>([]);
   const layout = useGridLayout(gridRef, cellsWrapRefs, activePattern);
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+  }, [activePattern.id]);
 
   function handleGridClick(e: MouseEvent<HTMLDivElement>) {
     if (mode !== "line") return;
@@ -34,7 +41,7 @@ export function GridView() {
   const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
 
   return (
-    <section className="gridWrap">
+    <section className="gridWrap" ref={wrapRef}>
       <div className="gridRows" ref={gridRef} onClick={handleGridClick}>
         {activePattern.rows.map((row, r) => (
           <Row

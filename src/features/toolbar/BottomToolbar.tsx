@@ -259,7 +259,7 @@ export function BottomToolbar() {
         ))}
       </div>
       <div className="modeSettingsPanel">
-        {toolbarMode === "rows"  && <RowSettingsContent />}
+        {toolbarMode === "rows"  && <div className="panelContent"><RowSettingsContent /></div>}
         {toolbarMode === "names" && <NamesPanel />}
         {toolbarMode === "sort"  && <SortPanel />}
         {toolbarMode === "paint" && <PaintPanel />}
