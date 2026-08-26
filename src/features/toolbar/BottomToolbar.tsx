@@ -171,19 +171,13 @@ function LinesPanel() {
 }
 
 function SharePanel() {
-  const { exportImageFile, shareCurrentPattern, refreshShareFromServer } = useApp();
+  const { exportImageFile } = useApp();
 
   return (
     <div className="panelContent sharePanelContent">
       <button type="button" className="btn shareBtn" onClick={exportImageFile}>
         <ImageIcon />
         PNG書き出し
-      </button>
-      <button type="button" className="btn shareBtn primary" onClick={shareCurrentPattern}>
-        共有リンクを作成/更新
-      </button>
-      <button type="button" className="btn shareBtn" onClick={refreshShareFromServer}>
-        最新内容を取得
       </button>
     </div>
   );

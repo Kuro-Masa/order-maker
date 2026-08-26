@@ -1,6 +1,6 @@
-import { DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT, STORAGE_KEY } from "../constants";
+import { STORAGE_KEY } from "../constants";
 import type { AppState } from "../types";
-import { createPattern } from "./patternHelpers";
+import { createDefaultPattern } from "./patternHelpers";
 
 export function loadState(): AppState {
   try {
@@ -22,7 +22,7 @@ export function loadState(): AppState {
   } catch {
     // fall through to fresh state
   }
-  const pattern = createPattern("パターン1", DEFAULT_ROW_COUNT, DEFAULT_COL_COUNT);
+  const pattern = createDefaultPattern("パターン1");
   return { patterns: [pattern], activeId: pattern.id, members: [] };
 }
 

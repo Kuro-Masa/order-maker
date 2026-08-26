@@ -52,6 +52,23 @@ export function createPattern(name: string, rowCount: number, colCount: number):
   };
 }
 
+export function createDefaultPattern(name: string): Pattern {
+  return {
+    id: makeId(),
+    name,
+    rows: [
+      createRow([12]),
+      createRow([11]),
+      createRow([10]),
+    ],
+    partSettings: { scheme: "4", counts: {} },
+    showConductor: true,
+    showCenterLine: false,
+    lines: [],
+    shareId: null,
+  };
+}
+
 export function rowOnRiser(row: RowData): boolean {
   return !!row.onRiser;
 }

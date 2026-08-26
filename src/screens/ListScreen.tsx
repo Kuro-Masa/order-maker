@@ -14,17 +14,6 @@ function GridIcon() {
   );
 }
 
-function ShareBadgeIcon() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-      <circle cx="8" cy="2" r="1.4" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="2" cy="5" r="1.4" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="8" cy="8" r="1.4" stroke="currentColor" strokeWidth="1.2" />
-      <line x1="3.2" y1="4.3" x2="6.8" y2="2.7" stroke="currentColor" strokeWidth="1.2" />
-      <line x1="3.2" y1="5.7" x2="6.8" y2="7.3" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-}
 
 function PatternMiniPreview({ pattern }: { pattern: Pattern }) {
   const VW = 120;
@@ -64,7 +53,6 @@ function PatternMiniPreview({ pattern }: { pattern: Pattern }) {
             height={scaledCellH}
             rx={1.5}
             fill={cell.color ?? "#4F6BF8"}
-            opacity={Math.max(0.3, 0.85 - r * 0.12)}
           />
         ));
       })}
@@ -83,13 +71,12 @@ function PatternMiniPreview({ pattern }: { pattern: Pattern }) {
 
 interface CardProps {
   pattern: Pattern;
-  canDelete: boolean;
   onOpen: () => void;
   onRename: (name: string) => void;
   onDelete: () => void;
 }
 
-function LayoutCard({ pattern, canDelete, onOpen, onRename, onDelete }: CardProps) {
+function LayoutCard({ pattern, onOpen, onRename, onDelete }: CardProps) {
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(pattern.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -116,7 +103,6 @@ function LayoutCard({ pattern, canDelete, onOpen, onRename, onDelete }: CardProp
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!canDelete) return;
     if (!confirm(`「${pattern.name}」を削除しますか？`)) return;
     onDelete();
   }
@@ -151,12 +137,6 @@ function LayoutCard({ pattern, canDelete, onOpen, onRename, onDelete }: CardProp
               {pattern.name || "無題"}
             </span>
           )}
-          {pattern.shareId && (
-            <span className="cardBadge">
-              <ShareBadgeIcon />
-              共有中
-            </span>
-          )}
         </div>
         <div className="cardActions">
           <button
@@ -172,8 +152,7 @@ function LayoutCard({ pattern, canDelete, onOpen, onRename, onDelete }: CardProp
             type="button"
             className="cardActionBtn danger"
             onClick={handleDelete}
-            disabled={!canDelete}
-            title={canDelete ? "削除" : "最後のパターンは削除できません"}
+            title="削除"
             aria-label="削除"
           >
             <TrashIcon />
@@ -246,7 +225,6 @@ export function ListScreen() {
             <LayoutCard
               key={p.id}
               pattern={p}
-              canDelete={state.patterns.length > 1}
               onOpen={() => navigateToEdit(p.id)}
               onRename={(name) => renamePattern(p.id, name)}
               onDelete={() => deletePattern(p.id)}

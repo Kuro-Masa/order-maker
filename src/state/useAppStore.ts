@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Unsubscribe } from "firebase/firestore";
-import { DEFAULT_COL_COUNT, DEFAULT_ROW_COUNT, PALETTE, PART_SCHEMES } from "../constants";
+import { DEFAULT_COL_COUNT, PALETTE, PART_SCHEMES } from "../constants";
 import type { Mode, Pattern, PatternJson, Selected } from "../types";
 import { loadState, saveState } from "./persistence";
 import {
+  createDefaultPattern,
   createPattern,
   createRow,
   getCellsColumnMajor,
@@ -114,11 +115,7 @@ export function useAppStore() {
   // ---- pattern (tab) management ----
 
   function addPattern() {
-    const pattern = createPattern(
-      "パターン" + (state.patterns.length + 1),
-      DEFAULT_ROW_COUNT,
-      DEFAULT_COL_COUNT
-    );
+    const pattern = createDefaultPattern("パターン" + (state.patterns.length + 1));
     setState((prev) => ({ ...prev, patterns: [...prev.patterns, pattern], activeId: pattern.id }));
     setSelected(null);
   }
@@ -172,13 +169,19 @@ export function useAppStore() {
   }
 
   function deletePattern(patternId: string) {
-    if (state.patterns.length <= 1) return;
     const idx = state.patterns.findIndex((p) => p.id === patternId);
     if (idx < 0) return;
     const removedId = state.patterns[idx].id;
-    const newPatterns = state.patterns.filter((p) => p.id !== patternId);
-    const next = newPatterns[Math.max(0, idx - 1)];
-    setState((prev) => ({ ...prev, patterns: newPatterns, activeId: next.id }));
+    let newPatterns = state.patterns.filter((p) => p.id !== patternId);
+    let newActiveId: string;
+    if (newPatterns.length === 0) {
+      const fresh = createDefaultPattern("パターン1");
+      newPatterns = [fresh];
+      newActiveId = fresh.id;
+    } else {
+      newActiveId = newPatterns[Math.max(0, idx - 1)].id;
+    }
+    setState((prev) => ({ ...prev, patterns: newPatterns, activeId: newActiveId }));
     setSelected(null);
     if (shareListenerPatternIdRef.current === removedId && shareUnsubRef.current) {
       shareUnsubRef.current();
