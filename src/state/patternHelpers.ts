@@ -180,7 +180,7 @@ export function regenerateRowCells(row: RowData, newSegments: number[], newGaps:
 }
 
 export function totalCellCount(pattern: Pattern): number {
-  return pattern.rows.reduce((sum, row) => sum + row.cells.length, 0);
+  return pattern.rows.reduce((sum, row) => sum + segmentsTotal(row.segments), 0);
 }
 
 export function getCellsColumnMajor(pattern: Pattern): CellData[] {
