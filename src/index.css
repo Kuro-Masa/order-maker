@@ -632,33 +632,12 @@ svg {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
-.partCountItem input[type="number"] {
-  width: 52px;
-  padding: 5px 6px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 0.95rem;
-  text-align: center;
-}
-
-.partCountsFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.partTotalSummary {
-  font-size: 0.85rem;
-  color: var(--text);
-  margin: 0;
-}
-
-.partTotalSummary.mismatch {
-  color: #c0392b;
+.partCountDisplay {
+  font-size: 1rem;
   font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+  color: var(--text);
 }
 
 .rowsList {

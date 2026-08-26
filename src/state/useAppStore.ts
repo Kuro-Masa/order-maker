@@ -7,7 +7,6 @@ import {
   createDefaultPattern,
   createPattern,
   createRow,
-  getCellsColumnMajor,
   makeLineId,
   parseRowSpec,
   regenerateRowCells,
@@ -261,55 +260,6 @@ export function useAppStore() {
     updateActivePattern((p) => ({ ...p, partSettings: { scheme, counts: {} } }));
   }
 
-  function setPartCount(key: string, count: number) {
-    updateActivePattern((p) => ({
-      ...p,
-      partSettings: {
-        ...p.partSettings,
-        counts: { ...p.partSettings.counts, [key]: Math.max(0, count) },
-      },
-    }));
-  }
-
-  function autoColorizeByParts() {
-    if (!activePattern) return;
-    const settings = activePattern.partSettings;
-    const parts = PART_SCHEMES[settings.scheme];
-    if (!parts) return;
-
-    const partsTotal = parts.reduce((sum, part) => sum + (settings.counts[part.key] || 0), 0);
-    if (partsTotal === 0) {
-      alert("各パートの人数を入力してください");
-      return;
-    }
-    if (!confirm("マスの色を人数に応じて自動で塗り直します。既存の色は上書きされます。よろしいですか?")) return;
-
-    updateActivePattern((p) => {
-      const rows = p.rows.map((row) => ({ ...row, cells: row.cells.map((c) => ({ ...c })) }));
-      const newPattern = { ...p, rows };
-      const flatCells = getCellsColumnMajor(newPattern);
-      flatCells.forEach((c) => {
-        c.color = null;
-      });
-      let idx = 0;
-      parts.forEach((part) => {
-        const count = settings.counts[part.key] || 0;
-        for (let i = 0; i < count && idx < flatCells.length; i++) {
-          flatCells[idx].color = part.color;
-          idx++;
-        }
-      });
-      if (partsTotal > flatCells.length) {
-        setTimeout(() => {
-          alert(
-            `人数の合計(${partsTotal}人)がマスの数(${flatCells.length}個)を超えています。` +
-              `${flatCells.length}個目までしか色を割り当てられませんでした。`
-          );
-        }, 0);
-      }
-      return newPattern;
-    });
-  }
 
   function clearAllNames() {
     if (!confirm("すべての名前を消去しますか?(色は残ります)")) return;
@@ -584,8 +534,6 @@ export function useAppStore() {
     toggleRowOnRiser,
     setRowShift,
     setPartScheme,
-    setPartCount,
-    autoColorizeByParts,
     clearAllNames,
     toggleCenterLine,
     toggleConductor,
