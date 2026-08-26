@@ -182,8 +182,8 @@ export function useAppStore() {
   }
 
   function toggleRowStagger(rowIndex: number, checked: boolean) {
-    if (rowIndex === 0) return;
     updateActivePattern((p) => {
+      if (rowIndex === p.rows.length - 1) return p;
       const rows = p.rows.slice();
       rows[rowIndex] = { ...rows[rowIndex], stagger: checked };
       return { ...p, rows };

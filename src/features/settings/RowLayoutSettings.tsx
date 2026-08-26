@@ -8,6 +8,7 @@ import { Accordion } from "./Accordion";
 function RowEditorItem({
   row,
   r,
+  isLast,
   onSpecChange,
   onRemove,
   onRiserToggle,
@@ -15,6 +16,7 @@ function RowEditorItem({
 }: {
   row: RowData;
   r: number;
+  isLast: boolean;
   onSpecChange: (spec: string) => void;
   onRemove: () => void;
   onRiserToggle: (checked: boolean) => void;
@@ -60,7 +62,7 @@ function RowEditorItem({
         <input type="checkbox" checked={rowOnRiser(row)} onChange={(e) => onRiserToggle(e.target.checked)} />
         段に乗る(プレビューに背景を表示)
       </label>
-      {r > 0 && (
+      {!isLast && (
         <label className="riserToggle">
           <input type="checkbox" checked={rowIsOffset(row, r)} onChange={(e) => onStaggerToggle(e.target.checked)} />
           前列から半歩ずらす
@@ -86,6 +88,7 @@ export function RowLayoutSettings() {
               key={r}
               row={row}
               r={r}
+              isLast={r === activePattern.rows.length - 1}
               onSpecChange={(spec) => updateRowSpec(r, spec)}
               onRemove={() => removeRow(r)}
               onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}

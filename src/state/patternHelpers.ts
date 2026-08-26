@@ -20,7 +20,6 @@ export function segmentsTotal(segments: number[]): number {
 }
 
 export function rowIsOffset(row: RowData, fallbackIndex: number): boolean {
-  if (fallbackIndex === 0) return false;
   return row.stagger ?? (fallbackIndex % 2 === 1);
 }
 
