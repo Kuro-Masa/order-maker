@@ -606,6 +606,8 @@ export function useAppStore() {
     setMembers: (members: import("../types").Member[]) =>
       setState((prev) => ({ ...prev, members })),
     clearMembers: () => setState((prev) => ({ ...prev, members: [] })),
+    removeMember: (id: string) =>
+      setState((prev) => ({ ...prev, members: prev.members.filter((m) => m.id !== id) })),
   };
 }
 

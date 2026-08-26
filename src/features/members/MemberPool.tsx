@@ -146,8 +146,9 @@ export function MemberPool() {
                 className="memberChip"
                 draggable
                 onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = "copy";
+                  e.dataTransfer.effectAllowed = "move";
                   e.dataTransfer.setData("application/x-member", m.name);
+                  e.dataTransfer.setData("application/x-member-id", m.id);
                 }}
               >
                 <span className="chipName">{m.name}</span>

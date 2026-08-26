@@ -4,7 +4,7 @@ import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 
 export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
-  const { mode, selected, setCellName, onCellSwapClick, paintCell, currentColor } = useApp();
+  const { mode, selected, setCellName, onCellSwapClick, paintCell, currentColor, removeMember } = useApp();
   const cellData = row.cells[c];
   const ref = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -77,6 +77,8 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
     if (!name) return;
     setCellName(r, c, name);
     if (ref.current) ref.current.textContent = name;
+    const memberId = e.dataTransfer.getData("application/x-member-id");
+    if (memberId) removeMember(memberId);
   }
 
   return (
