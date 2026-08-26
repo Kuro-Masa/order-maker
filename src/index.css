@@ -855,6 +855,83 @@ svg {
   font-size: 12px;
 }
 
+/* Sidebar toggle / close buttons — desktop hides both */
+.sidebarToggleBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.sidebarToggleBtn:hover { background: var(--bg); }
+
+.sidebarCloseBtn {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.sidebarCloseBtn:hover { color: #fff; }
+
+.sidebarBackdrop {
+  display: none;
+}
+
+/* Mobile: sidebar becomes a fixed drawer */
+@media (max-width: 767px) {
+  .listSidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100dvh;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.35);
+  }
+  .listSidebar.listSidebarOpen {
+    transform: translateX(0);
+  }
+  .sidebarBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    background: rgba(0,0,0,0.45);
+  }
+  .sidebarToggleBtn {
+    display: flex;
+  }
+  .sidebarCloseBtn {
+    display: block;
+  }
+  .listMainHead {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .listMainTitle {
+    font-size: 14px;
+  }
+  .listNewBtn {
+    font-size: 13px;
+    padding: 6px 10px;
+    white-space: nowrap;
+  }
+}
+
 /* Main area */
 .listMain {
   flex: 1;

@@ -186,6 +186,7 @@ function LayoutCard({ pattern, canDelete, onOpen, onRename, onDelete }: CardProp
 
 export function ListScreen() {
   const { state, navigateToEdit, addPattern, renamePattern, deletePattern } = useApp();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   function handleNew() {
     addPattern();
@@ -194,8 +195,13 @@ export function ListScreen() {
 
   return (
     <div className="listScreen">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div className="sidebarBackdrop" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="listSidebar">
+      <aside className={"listSidebar" + (sidebarOpen ? " listSidebarOpen" : "")}>
         <div className="listSidebarHead">
           <div className="listSidebarMark">
             <svg width="15" height="13" viewBox="0 0 15 13" fill="none" aria-hidden="true">
@@ -205,6 +211,7 @@ export function ListScreen() {
             </svg>
           </div>
           <span className="listSidebarName">オーダーメーカー</span>
+          <button type="button" className="sidebarCloseBtn" aria-label="サイドバーを閉じる" onClick={() => setSidebarOpen(false)}>✕</button>
         </div>
         <nav className="listSidebarNav">
           <div className="listNavItem listNavItemActive">
@@ -221,6 +228,13 @@ export function ListScreen() {
       {/* Main content */}
       <div className="listMain">
         <div className="listMainHead">
+          <button type="button" className="sidebarToggleBtn" aria-label="メニューを開く" onClick={() => setSidebarOpen(true)}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect x="2" y="4" width="14" height="1.8" rx="0.9" fill="currentColor"/>
+              <rect x="2" y="8.1" width="14" height="1.8" rx="0.9" fill="currentColor"/>
+              <rect x="2" y="12.2" width="14" height="1.8" rx="0.9" fill="currentColor"/>
+            </svg>
+          </button>
           <h1 className="listMainTitle">マイレイアウト</h1>
           <button type="button" className="listNewBtn" onClick={handleNew}>
             ＋ 新しいレイアウト
