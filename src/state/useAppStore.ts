@@ -525,6 +525,28 @@ export function useAppStore() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Handle browser back/forward button
+  useEffect(() => {
+    function handlePopState() {
+      const params = new URLSearchParams(window.location.search);
+      const layoutId = params.get("layout");
+      if (layoutId) {
+        const pattern = stateRef.current.patterns.find((p) => p.id === layoutId);
+        if (pattern) {
+          setState((prev) => ({ ...prev, activeId: layoutId }));
+          setSelected(null);
+          setScreen("edit");
+        } else {
+          setScreen("list");
+        }
+      } else {
+        setScreen("list");
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   return {
     state,
     activePattern,
