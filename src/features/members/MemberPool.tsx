@@ -384,12 +384,6 @@ export function MemberPool() {
             {members.length > 0 && (
               <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
             )}
-            <button type="button" className="poolImportBtn" onClick={() => setDialogOpen(true)}>
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              CSV取り込み
-            </button>
           </div>
         </div>
 
@@ -400,8 +394,7 @@ export function MemberPool() {
               <circle cx="9" cy="7" r="4" strokeWidth="1.6" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
-            <span className="poolEmptyText">メンバーをまだ登録していません</span>
-            <span className="poolEmptyCta">CSVを取り込む →</span>
+            <span className="poolEmptyCta">メンバーを取り込む</span>
           </button>
         ) : (
           <div className="memberList">

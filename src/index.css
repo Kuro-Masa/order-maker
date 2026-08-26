@@ -1324,11 +1324,9 @@ svg {
   align-items: center;
 }
 
-.shareBtn {
-  display: inline-flex;
-  align-items: center;
+.exportImageBtn {
+  width: 100%;
   gap: 6px;
-  font-size: 13px;
 }
 
 /* ─────────────────────────────────────────

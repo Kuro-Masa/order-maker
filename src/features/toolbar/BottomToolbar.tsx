@@ -153,9 +153,9 @@ function SharePanel() {
 
   return (
     <div className="panelContent sharePanelContent">
-      <button type="button" className="btn shareBtn" onClick={exportImageFile}>
+      <button type="button" className="btn exportImageBtn" onClick={exportImageFile}>
         <ImageIcon />
-        PNG書き出し
+        画像で出力
       </button>
     </div>
   );
