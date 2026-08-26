@@ -4,6 +4,7 @@ import { showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { RowSettingsContent } from "../settings/RowLayoutSettings";
 import { PartColorSettingsContent } from "../settings/PartColorSettings";
+import { MemberPool } from "../members/MemberPool";
 import type { Mode } from "../../types";
 
 type ToolbarMode = "rows" | "names" | "sort" | "paint" | "lines" | "share";
@@ -75,11 +76,12 @@ function ShareOutputIcon() {
 
 // ── Mode panels ───────────────────────────────────────────────
 
-function NamesPanel() {
+function MemberEditPanel() {
   const { clearAllNames } = useApp();
   return (
-    <div className="panelContent">
-      <p className="panelHint">
+    <div className="panelContent memberEditPanel">
+      <MemberPool />
+      <p className="panelHint" style={{ marginTop: 8 }}>
         マスをタップして名前を入力できます。Enterで次へ、Tabで隣のマスへ移動します。
       </p>
       <button type="button" className="btn" onClick={clearAllNames}>
@@ -165,7 +167,7 @@ function SharePanel() {
 
 const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
   { id: "rows",  icon: <TableLayoutIcon />, label: "列の編集"   },
-  { id: "names", icon: <PencilIcon />,      label: "名前編集"   },
+  { id: "names", icon: <PencilIcon />,      label: "メンバー編集" },
   { id: "sort",  icon: <SortArrowsIcon />,  label: "入れ替え"   },
   { id: "paint", icon: <PaletteIcon />,     label: "色塗り"     },
   { id: "lines", icon: <VerticalLinesIcon />, label: "縦線"     },
@@ -225,7 +227,7 @@ export function BottomToolbar() {
         <div className="modeSettingsPanel" style={{ height: panelHeight }}>
           <div className="panelResizeHandle" onPointerDown={handleResizePointerDown} />
           {toolbarMode === "rows"  && <div className="panelContent"><RowSettingsContent /></div>}
-          {toolbarMode === "names" && <NamesPanel />}
+          {toolbarMode === "names" && <MemberEditPanel />}
           {toolbarMode === "sort"  && <SortPanel />}
           {toolbarMode === "paint" && <PaintPanel />}
           {toolbarMode === "lines" && <LinesPanel />}

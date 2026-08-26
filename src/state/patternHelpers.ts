@@ -57,9 +57,9 @@ export function createDefaultPattern(name: string): Pattern {
     id: makeId(),
     name,
     rows: [
+      createRow([3, 3], [4]),
       createRow([12]),
       createRow([11]),
-      createRow([10]),
     ],
     partSettings: { scheme: "4", counts: {} },
     showConductor: true,

@@ -555,7 +555,7 @@ svg {
   z-index: 9999;
   background: var(--accent);
   color: var(--accent-text);
-  border-radius: 6px;
+  border-radius: 999px;
   padding: 3px 10px;
   font-size: 12px;
   font-weight: 500;
