@@ -74,41 +74,47 @@ function RowEditorItem({
   );
 }
 
-export function RowLayoutSettings() {
+export function RowSettingsContent() {
   const { activePattern, updateRowSpec, removeRow, toggleRowOnRiser, setRowShift, addRow, toggleConductor } = useApp();
   const { cellsTotal, mismatch } = computeTotals(activePattern);
 
   return (
-    <Accordion icon={<RowsAccordionIcon />} title="配置する枠の設定">
-      <div className="rowsEditor">
-        <p className="rowsEditorNote">
-          横列ごとに人数を設定してください。例: 「8」で8人、「5,5」で5人+すき間(既定0.25マス分)+5人、「5,E2,5」ですき間をマス2個分に指定(小数も可)
-        </p>
-        <div className="rowsList">
-          {activePattern.rows.map((row, r) => (
-            <RowEditorItem
-              key={r}
-              row={row}
-              onSpecChange={(spec) => updateRowSpec(r, spec)}
-              onRemove={() => removeRow(r)}
-              onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}
-              onShiftChange={(shift) => setRowShift(r, shift)}
-            />
-          ))}
-        </div>
-        <button type="button" className="btn" onClick={addRow}>
-          ＋ 行を追加
-        </button>
-        <p className={"partTotalSummary" + (mismatch ? " mismatch" : "")}>マスの数: {cellsTotal}個</p>
-        <label className="conductorToggle">
-          <input
-            type="checkbox"
-            checked={showsConductor(activePattern)}
-            onChange={(e) => toggleConductor(e.target.checked)}
+    <div className="rowsEditor">
+      <p className="rowsEditorNote">
+        横列ごとに人数を設定してください。例: 「8」で8人、「5,5」で5人+すき間(既定0.25マス分)+5人、「5,E2,5」ですき間をマス2個分に指定(小数も可)
+      </p>
+      <div className="rowsList">
+        {activePattern.rows.map((row, r) => (
+          <RowEditorItem
+            key={r}
+            row={row}
+            onSpecChange={(spec) => updateRowSpec(r, spec)}
+            onRemove={() => removeRow(r)}
+            onRiserToggle={(checked) => toggleRowOnRiser(r, checked)}
+            onShiftChange={(shift) => setRowShift(r, shift)}
           />
-          一番下の中央に指揮者マークを表示
-        </label>
+        ))}
       </div>
+      <button type="button" className="btn" onClick={addRow}>
+        ＋ 行を追加
+      </button>
+      <p className={"partTotalSummary" + (mismatch ? " mismatch" : "")}>マスの数: {cellsTotal}個</p>
+      <label className="conductorToggle">
+        <input
+          type="checkbox"
+          checked={showsConductor(activePattern)}
+          onChange={(e) => toggleConductor(e.target.checked)}
+        />
+        一番下の中央に指揮者マークを表示
+      </label>
+    </div>
+  );
+}
+
+export function RowLayoutSettings() {
+  return (
+    <Accordion icon={<RowsAccordionIcon />} title="配置する枠の設定">
+      <RowSettingsContent />
     </Accordion>
   );
 }

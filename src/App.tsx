@@ -1,21 +1,8 @@
 import { AppStoreProvider, useApp } from "./state/AppStoreContext";
 import { TopBar } from "./features/topbar/TopBar";
-import { PartColorSettings } from "./features/settings/PartColorSettings";
-import { RowLayoutSettings } from "./features/settings/RowLayoutSettings";
-import { LineSettings } from "./features/settings/LineSettings";
-import { Toolbar } from "./features/toolbar/Toolbar";
-import { Palette } from "./features/toolbar/Palette";
+import { BottomToolbar } from "./features/toolbar/BottomToolbar";
 import { GridView } from "./features/grid/GridView";
-
-function Hint() {
-  const { mode } = useApp();
-  let text = "マスをタップして名前を入力してください";
-  if (mode === "swap") text = "入れ替えたい2つのマスを順にタップしてください";
-  else if (mode === "paint") text = "色を選んでからマスをタップすると塗れます";
-  else if (mode === "line")
-    text = "空いている場所をタップすると縦線を追加、既存の線はドラッグで移動できます(削除は下の一覧で)";
-  return <p className="hint">{text}</p>;
-}
+import { ListScreen } from "./screens/ListScreen";
 
 function ShareBanner() {
   const { shareUrl, dismissShareUrl } = useApp();
@@ -31,21 +18,24 @@ function ShareBanner() {
   );
 }
 
-function AppShell() {
+function EditScreen() {
   return (
-    <div className="app">
+    <div className="editScreen">
       <h1 className="sr-only">オーダーメーカー</h1>
       <TopBar />
       <ShareBanner />
-      <PartColorSettings />
-      <RowLayoutSettings />
-      <LineSettings />
-      <Toolbar />
-      <Palette />
-      <Hint />
-      <GridView />
+      <div className="editBody">
+        <GridView />
+      </div>
+      <BottomToolbar />
     </div>
   );
+}
+
+function AppShell() {
+  const { screen } = useApp();
+  if (screen === "list") return <ListScreen />;
+  return <EditScreen />;
 }
 
 export default function App() {

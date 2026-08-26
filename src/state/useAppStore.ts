@@ -31,6 +31,7 @@ import {
 
 export function useAppStore() {
   const [state, setState] = useState(() => loadState());
+  const [screen, setScreen] = useState<"list" | "edit">("list");
   const [mode, setModeRaw] = useState<Mode>("edit");
   const [selected, setSelected] = useState<Selected | null>(null);
   const [currentColor, setCurrentColor] = useState<string | null>(PALETTE[0]);
@@ -89,6 +90,20 @@ export function useAppStore() {
     updatePatternById(activePattern.id, updater);
   }
 
+  // ---- screen navigation ----
+
+  function navigateToEdit(patternId?: string) {
+    if (patternId && patternId !== state.activeId) {
+      setState((prev) => ({ ...prev, activeId: patternId }));
+      setSelected(null);
+    }
+    setScreen("edit");
+  }
+
+  function navigateToList() {
+    setScreen("list");
+  }
+
   // ---- pattern (tab) management ----
 
   function addPattern() {
@@ -141,6 +156,28 @@ export function useAppStore() {
     if (name === null) return;
     const trimmed = name.trim() || activePattern.name;
     updateActivePattern((p) => ({ ...p, name: trimmed }));
+  }
+
+  function renamePattern(patternId: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    updatePatternById(patternId, (p) => ({ ...p, name: trimmed }));
+  }
+
+  function deletePattern(patternId: string) {
+    if (state.patterns.length <= 1) return;
+    const idx = state.patterns.findIndex((p) => p.id === patternId);
+    if (idx < 0) return;
+    const removedId = state.patterns[idx].id;
+    const newPatterns = state.patterns.filter((p) => p.id !== patternId);
+    const next = newPatterns[Math.max(0, idx - 1)];
+    setState({ patterns: newPatterns, activeId: next.id });
+    setSelected(null);
+    if (shareListenerPatternIdRef.current === removedId && shareUnsubRef.current) {
+      shareUnsubRef.current();
+      shareUnsubRef.current = null;
+      shareListenerPatternIdRef.current = null;
+    }
   }
 
   // ---- row helpers ----
@@ -500,6 +537,9 @@ export function useAppStore() {
   return {
     state,
     activePattern,
+    screen,
+    navigateToEdit,
+    navigateToList,
     mode,
     changeMode,
     selected,
@@ -510,6 +550,8 @@ export function useAppStore() {
     deleteActivePattern,
     switchPattern,
     renameActivePattern,
+    renamePattern,
+    deletePattern,
     updateRowSpec,
     addRow,
     removeRow,

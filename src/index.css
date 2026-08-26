@@ -722,3 +722,478 @@ svg {
   margin-top: 6px;
   flex: 0 0 auto;
 }
+
+/* ─────────────────────────────────────────
+   List screen (layout selector)
+───────────────────────────────────────── */
+
+.listScreen {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* Sidebar — always dark navy regardless of theme */
+.listSidebar {
+  width: 200px;
+  background: #0C1526;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.listSidebarHead {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.listSidebarMark {
+  width: 26px;
+  height: 26px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.listSidebarName {
+  color: #D0DCF0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.listSidebarNav {
+  padding: 10px 8px;
+  flex: 1;
+}
+
+.listNavItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #66778F;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.listNavItemActive {
+  background: rgba(255, 255, 255, 0.08);
+  color: #E0EAF8;
+}
+
+.listSidebarUser {
+  padding: 12px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.listSidebarAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.listSidebarUserName {
+  color: #7A8BAD;
+  font-size: 12px;
+}
+
+/* Main area */
+.listMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.listMainHead {
+  height: 52px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.listMainTitle {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0;
+  flex: 1;
+}
+
+.listNewBtn {
+  appearance: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.listNewBtn:hover {
+  opacity: 0.88;
+}
+
+/* Card grid */
+.cardGrid {
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 14px;
+  overflow-y: auto;
+  flex: 1;
+  align-content: start;
+}
+
+.layoutCard {
+  appearance: none;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  padding: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+}
+
+.layoutCard:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(58, 109, 240, 0.12);
+}
+
+.cardThumb {
+  background: var(--bg);
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.cardInfo {
+  padding: 9px 11px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cardName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.cardBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(58, 109, 240, 0.1);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  width: fit-content;
+}
+
+/* Back button in edit mode topbar */
+.topBarBackBtn {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.topBarBackBtn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ─────────────────────────────────────────
+   Pattern name input in edit topbar
+───────────────────────────────────────── */
+
+.patternNameInput {
+  flex: 1;
+  text-align: center;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+  outline: none;
+  min-width: 0;
+}
+
+.patternNameInput:hover {
+  background: var(--bg);
+}
+
+.patternNameInput:focus {
+  background: var(--bg);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* ─────────────────────────────────────────
+   Layout card (list screen) — with actions
+───────────────────────────────────────── */
+
+.layoutCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.layoutCard:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(58, 109, 240, 0.12);
+}
+
+.cardThumbBtn {
+  appearance: none;
+  background: var(--bg);
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  width: 100%;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+
+.cardThumbBtn:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+}
+
+.cardInfoRow {
+  padding: 8px 10px 8px 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  min-height: 42px;
+}
+
+.cardNameWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cardRenameInput {
+  width: 100%;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--panel-bg);
+  outline: none;
+}
+
+.cardActions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.layoutCard:hover .cardActions,
+.layoutCard:focus-within .cardActions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .cardActions { opacity: 1; }
+}
+
+.cardActionBtn {
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.cardActionBtn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.cardActionBtn.danger:hover:not(:disabled) {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.cardActionBtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────
+   Edit screen — full-height flex layout
+───────────────────────────────────────── */
+
+.editScreen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.editBody {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Bottom toolbar ── */
+.editBottom {
+  flex-shrink: 0;
+  background: var(--panel-bg);
+  border-top: 1px solid var(--border);
+}
+
+.modeToolbar {
+  display: flex;
+  justify-content: space-around;
+  padding: 4px 6px;
+  height: 62px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.modeBtn {
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-family: inherit;
+  min-width: 52px;
+  color: var(--muted);
+  transition: background 0.1s, color 0.1s;
+}
+
+.modeBtn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.modeBtn.active {
+  color: var(--accent);
+  background: rgba(58, 109, 240, 0.08);
+}
+
+.modeBtnLabel {
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* ── Settings panel (below toolbar) ── */
+.modeSettingsPanel {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.panelContent {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panelHint {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Share panel: horizontal wrapping layout */
+.sharePanelContent {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.shareBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
