@@ -1198,3 +1198,243 @@ svg {
   gap: 6px;
   font-size: 13px;
 }
+
+/* ─────────────────────────────────────────
+   Member pool
+───────────────────────────────────────── */
+
+.memberPool {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+
+.poolHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+}
+
+.poolLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+.poolHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.poolClearBtn {
+  appearance: none;
+  border: none;
+  background: none;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.poolClearBtn:hover { color: #c0392b; }
+
+.poolImportBtn {
+  appearance: none;
+  border: 0.5px solid var(--accent);
+  background: rgba(58, 109, 240, 0.08);
+  color: var(--accent);
+  font-size: 11px;
+  border-radius: 5px;
+  padding: 3px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+}
+
+.poolEmpty {
+  appearance: none;
+  background: none;
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  margin: 0 12px 10px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: calc(100% - 24px);
+  font-family: inherit;
+}
+
+.poolEmpty:hover { border-color: var(--accent); }
+
+.poolEmptyText {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.poolEmptyCta {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.memberList {
+  display: flex;
+  gap: 6px;
+  padding: 2px 14px 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.memberList::-webkit-scrollbar { height: 0; }
+
+.memberChip {
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 8px;
+  min-width: 54px;
+  cursor: default;
+}
+
+.chipName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  display: block;
+}
+
+.chipParts {
+  display: flex;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.chipPart {
+  font-size: 10px;
+  border-radius: 3px;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+
+.chipPart1 { background: #e8d8f8; color: #6b3aab; }
+.chipPart2 { background: #fde8d0; color: #b35a1a; }
+
+@media (prefers-color-scheme: dark) {
+  .chipPart1 { background: #3a2560; color: #c8a0f0; }
+  .chipPart2 { background: #4a2a10; color: #f0b070; }
+}
+
+/* ── Import dialog ── */
+
+.memberDialogBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.memberDialog {
+  background: var(--panel-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 20px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.memberDialogTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.memberDialogDesc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.memberDialogCols {
+  font-size: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.memberDialogCols code {
+  font-family: ui-monospace, monospace;
+  color: var(--text);
+  background: var(--panel-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.templateLink {
+  appearance: none;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 0;
+  font-family: inherit;
+}
+
+.fileDrop {
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+
+.fileDrop:hover { border-color: var(--accent); }
+
+.fileDropHint { font-size: 11px; color: var(--muted); }
+
+.memberDialogError {
+  font-size: 12px;
+  color: #c0392b;
+  margin-bottom: 8px;
+}
+
+.memberDialogBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.memberDialogBtns .btn {
+  flex: 1;
+}

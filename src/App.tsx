@@ -1,6 +1,7 @@
 import { AppStoreProvider, useApp } from "./state/AppStoreContext";
 import { TopBar } from "./features/topbar/TopBar";
 import { BottomToolbar } from "./features/toolbar/BottomToolbar";
+import { MemberPool } from "./features/members/MemberPool";
 import { GridView } from "./features/grid/GridView";
 import { ListScreen } from "./screens/ListScreen";
 
@@ -27,6 +28,7 @@ function EditScreen() {
       <div className="editBody">
         <GridView />
       </div>
+      <MemberPool />
       <BottomToolbar />
     </div>
   );

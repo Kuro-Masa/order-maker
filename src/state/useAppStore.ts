@@ -121,7 +121,7 @@ export function useAppStore() {
       DEFAULT_ROW_COUNT,
       DEFAULT_COL_COUNT
     );
-    setState((prev) => ({ patterns: [...prev.patterns, pattern], activeId: pattern.id }));
+    setState((prev) => ({ ...prev, patterns: [...prev.patterns, pattern], activeId: pattern.id }));
     setSelected(null);
   }
 
@@ -136,7 +136,7 @@ export function useAppStore() {
     const newPatterns = state.patterns.slice();
     newPatterns.splice(idx, 1);
     const next = newPatterns[Math.max(0, idx - 1)];
-    setState({ patterns: newPatterns, activeId: next.id });
+    setState((prev) => ({ ...prev, patterns: newPatterns, activeId: next.id }));
     setSelected(null);
     if (shareListenerPatternIdRef.current === removedId && shareUnsubRef.current) {
       shareUnsubRef.current();
@@ -180,7 +180,7 @@ export function useAppStore() {
     const removedId = state.patterns[idx].id;
     const newPatterns = state.patterns.filter((p) => p.id !== patternId);
     const next = newPatterns[Math.max(0, idx - 1)];
-    setState({ patterns: newPatterns, activeId: next.id });
+    setState((prev) => ({ ...prev, patterns: newPatterns, activeId: next.id }));
     setSelected(null);
     if (shareListenerPatternIdRef.current === removedId && shareUnsubRef.current) {
       shareUnsubRef.current();
@@ -547,7 +547,7 @@ export function useAppStore() {
         const pattern = createPattern(normalized.name || "共有パターン", 1, 1);
         applyNormalizedDataToPattern(pattern, normalized);
         pattern.shareId = shareId;
-        setState((prev) => ({ patterns: [...prev.patterns, pattern], activeId: pattern.id }));
+        setState((prev) => ({ ...prev, patterns: [...prev.patterns, pattern], activeId: pattern.id }));
         ensureShareListener(pattern);
         setScreen("edit");
       })
@@ -602,6 +602,10 @@ export function useAppStore() {
     dismissShareUrl: () => setShareUrl(null),
     shareCurrentPattern,
     refreshShareFromServer,
+    members: state.members,
+    setMembers: (members: import("../types").Member[]) =>
+      setState((prev) => ({ ...prev, members })),
+    clearMembers: () => setState((prev) => ({ ...prev, members: [] })),
   };
 }
 

@@ -32,9 +32,17 @@ export interface Pattern {
   shareId: string | null;
 }
 
+export interface Member {
+  id: string;
+  name: string;
+  part1: string;
+  part2: string;
+}
+
 export interface AppState {
   patterns: Pattern[];
   activeId: string | null;
+  members: Member[];
 }
 
 export type Mode = "edit" | "swap" | "paint" | "line";

@@ -12,14 +12,18 @@ export function loadState(): AppState {
         if (!parsed.patterns.some((p: { id: string }) => p.id === activeId)) {
           activeId = parsed.patterns[0].id;
         }
-        return { patterns: parsed.patterns, activeId };
+        return {
+          patterns: parsed.patterns,
+          activeId,
+          members: Array.isArray(parsed.members) ? parsed.members : [],
+        };
       }
     }
   } catch {
     // fall through to fresh state
   }
   const pattern = createPattern("パターン1", DEFAULT_ROW_COUNT, DEFAULT_COL_COUNT);
-  return { patterns: [pattern], activeId: pattern.id };
+  return { patterns: [pattern], activeId: pattern.id, members: [] };
 }
 
 export function saveState(state: AppState) {
