@@ -617,11 +617,19 @@ svg {
 }
 
 .partSwatch {
-  width: 14px;
-  height: 14px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   flex: 0 0 auto;
-  border: 1px solid var(--border);
+  border: 3px solid transparent;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.partSwatch.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .partCountItem input[type="number"] {

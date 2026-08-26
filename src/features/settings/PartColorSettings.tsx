@@ -5,7 +5,7 @@ import { useApp } from "../../state/AppStoreContext";
 import { Accordion } from "./Accordion";
 
 export function PartColorSettingsContent() {
-  const { activePattern, setPartScheme, setPartCount, autoColorizeByParts } = useApp();
+  const { activePattern, setPartScheme, setPartCount, autoColorizeByParts, currentColor, setCurrentColor } = useApp();
   const settings = activePattern.partSettings;
   const isNone = settings.scheme === "none";
   const parts = PART_SCHEMES[settings.scheme] || [];
@@ -35,7 +35,13 @@ export function PartColorSettingsContent() {
           <div className="partCountsList">
             {parts.map((part) => (
               <div className="partCountItem" key={part.key}>
-                <span className="partSwatch" style={{ background: part.color }} />
+                <button
+                  type="button"
+                  className={"partSwatch" + (currentColor === part.color ? " selected" : "")}
+                  style={{ background: part.color }}
+                  onClick={() => setCurrentColor(currentColor === part.color ? null : part.color)}
+                  aria-label={part.key}
+                />
                 <input
                   type="number"
                   min={0}

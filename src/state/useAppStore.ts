@@ -383,7 +383,17 @@ export function useAppStore() {
       const cells = rows[r].cells.slice();
       cells[c] = { ...cells[c], color };
       rows[r] = { ...rows[r], cells };
-      return { ...p, rows };
+      const newPattern = { ...p, rows };
+      const parts = PART_SCHEMES[p.partSettings.scheme];
+      if (parts) {
+        const allCells = newPattern.rows.flatMap((row) => row.cells);
+        const counts: Record<string, number> = {};
+        parts.forEach((part) => {
+          counts[part.key] = allCells.filter((cell) => cell.color === part.color).length;
+        });
+        return { ...newPattern, partSettings: { ...newPattern.partSettings, counts } };
+      }
+      return newPattern;
     });
   }
 

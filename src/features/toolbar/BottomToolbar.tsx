@@ -166,7 +166,7 @@ function SharePanel() {
 const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
   { id: "rows",  icon: <TableLayoutIcon />, label: "列の編集"   },
   { id: "names", icon: <PencilIcon />,      label: "名前編集"   },
-  { id: "sort",  icon: <SortArrowsIcon />,  label: "並べ替え"   },
+  { id: "sort",  icon: <SortArrowsIcon />,  label: "入れ替え"   },
   { id: "paint", icon: <PaletteIcon />,     label: "色塗り"     },
   { id: "lines", icon: <VerticalLinesIcon />, label: "縦線"     },
   { id: "share", icon: <ShareOutputIcon />, label: "出力・共有" },
