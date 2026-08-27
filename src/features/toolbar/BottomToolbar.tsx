@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ImageIcon, TrashIcon } from "../../icons";
 import { CELL_W, GAP_X } from "../../constants";
 import { segmentsTotal } from "../../state/patternHelpers";
@@ -192,20 +192,9 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
 // ── Main export ───────────────────────────────────────────────
 
 export function BottomToolbar() {
-  const { changeMode, toolbarMode, setToolbarMode, activePattern } = useApp();
-  const [panelOpen, setPanelOpen] = useState(true);
+  const { changeMode, toolbarMode, setToolbarMode } = useApp();
+  const [panelOpen, setPanelOpen] = useState(false);
   const [panelHeight, setPanelHeight] = useState(320);
-  const prevPatternIdRef = useRef(activePattern?.id);
-
-  useEffect(() => {
-    if (activePattern?.id !== prevPatternIdRef.current) {
-      prevPatternIdRef.current = activePattern?.id;
-      if (toolbarMode === "rows") {
-        setPanelOpen(true);
-        setPanelHeight(320);
-      }
-    }
-  }, [activePattern?.id, toolbarMode]);
 
   function selectMode(m: ToolbarMode) {
     if (toolbarMode === m) {

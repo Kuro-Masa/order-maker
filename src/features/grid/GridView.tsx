@@ -1,5 +1,5 @@
 import { useState, useRef, useLayoutEffect, type MouseEvent } from "react";
-import { rowShiftPx, showsCenterLine } from "../../state/patternHelpers";
+import { rowShiftPx, showsCenterLine, totalCellCount } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
 import { GuideLine } from "./GuideLine";
@@ -45,9 +45,13 @@ export function GridView() {
   const minZoom = 0.3;
   const maxZoom = 1.5;
 
+  const total = totalCellCount(activePattern);
+
   return (
     <>
-    <div className="gridZoomControls">
+    <div className="gridAboveBar">
+      <span className="gridTotalCount">合計 {total} マス</span>
+      <div className="gridZoomControls">
       <button
         type="button"
         className="gridZoomBtn"
@@ -63,6 +67,7 @@ export function GridView() {
         disabled={zoom >= maxZoom}
         onClick={() => setZoom((z) => parseFloat(Math.min(maxZoom, z + zoomStep).toFixed(1)))}
       >＋</button>
+      </div>
     </div>
     <section className="gridWrap" ref={wrapRef}>
       <div

@@ -384,6 +384,19 @@ svg {
   position: relative;
 }
 
+.gridAboveBar {
+  display: flex;
+  align-items: center;
+  padding: 0 16px 4px;
+  gap: 8px;
+}
+
+.gridTotalCount {
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 .gridZoomControls {
   display: flex;
   align-items: center;
@@ -393,8 +406,6 @@ svg {
   border-radius: 999px;
   padding: 3px 6px;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
-  align-self: flex-end;
-  margin: 0 16px 6px auto;
   flex-shrink: 0;
 }
 
@@ -2266,6 +2277,17 @@ svg {
 /* ─────────────────────────────────────────
    Settings panel — add row button
 ───────────────────────────────────────── */
+
+.rowsTotalCount {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 2px 0 6px;
+}
+
+.rowsTotalCount strong {
+  color: var(--text);
+  font-weight: 600;
+}
 
 .settingsAddRowBtn {
   display: flex;

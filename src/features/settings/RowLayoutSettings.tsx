@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RowsAccordionIcon, TrashIcon } from "../../icons";
-import { rowOnRiser } from "../../state/patternHelpers";
+import { rowOnRiser, totalCellCount } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 import { Accordion } from "./Accordion";
@@ -221,8 +221,11 @@ export function RowSettingsContent() {
     }
   }, [selectedEditRow, rows.length]);
 
+  const total = totalCellCount(activePattern);
+
   return (
     <div className="rowsEditor">
+      <div className="rowsTotalCount">合計 <strong>{total}</strong> マス</div>
       {rows.map((row, r) => {
         const rowNum = rows.length - r;
         const isSelected = selectedEditRow === r;
