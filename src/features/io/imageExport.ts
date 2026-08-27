@@ -42,7 +42,7 @@ function splitIntoLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: n
   return [text.slice(0, bestSplit), text.slice(bestSplit)];
 }
 
-function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, maxWidth: number, cellH: number) {
+function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, maxWidth: number) {
   if (!text) return;
   ctx.fillStyle = CELL_TEXT_COLOR;
   ctx.textAlign = "center";
@@ -155,7 +155,7 @@ export function exportImage(pattern: Pattern) {
         ctx.fill();
         ctx.stroke();
 
-        drawFittedText(ctx, cellData.name || "", x + cellW / 2, y + cellH / 2, cellW - 8, cellH);
+        drawFittedText(ctx, cellData.name || "", x + cellW / 2, y + cellH / 2, cellW - 8);
 
         x += cellW + gapX;
         cellIdx++;
