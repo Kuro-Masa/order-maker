@@ -24,19 +24,51 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, maxWidth: number) {
+function splitIntoLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, fontSize: number): string[] {
+  ctx.font = fontSize + "px sans-serif";
+  if (ctx.measureText(text).width <= maxWidth) return [text];
+  // Try splitting at every possible position to find the best 2-line split
+  let bestSplit = Math.ceil(text.length / 2);
+  let bestDiff = Infinity;
+  for (let i = 1; i < text.length; i++) {
+    const w1 = ctx.measureText(text.slice(0, i)).width;
+    const w2 = ctx.measureText(text.slice(i)).width;
+    const diff = Math.abs(w1 - w2);
+    if (diff < bestDiff && w1 <= maxWidth && w2 <= maxWidth) {
+      bestDiff = diff;
+      bestSplit = i;
+    }
+  }
+  return [text.slice(0, bestSplit), text.slice(bestSplit)];
+}
+
+function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, maxWidth: number, cellH: number) {
   if (!text) return;
-  let fontSize = 18;
   ctx.fillStyle = CELL_TEXT_COLOR;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  for (;;) {
-    ctx.font = fontSize + "px sans-serif";
-    const width = ctx.measureText(text).width;
-    if (width <= maxWidth || fontSize <= 9) break;
+
+  let fontSize = 13;
+  let lines = splitIntoLines(ctx, text, maxWidth, fontSize);
+
+  // Shrink only if even 2-line split overflows
+  while (fontSize > 8) {
+    const fits = lines.every((l) => {
+      ctx.font = fontSize + "px sans-serif";
+      return ctx.measureText(l).width <= maxWidth;
+    });
+    if (fits) break;
     fontSize -= 1;
+    lines = splitIntoLines(ctx, text, maxWidth, fontSize);
   }
-  ctx.fillText(text, cx, cy);
+
+  ctx.font = fontSize + "px sans-serif";
+  const lineH = fontSize * 1.3;
+  const totalH = lines.length * lineH;
+  const startY = cy - totalH / 2 + lineH / 2;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, cx, startY + i * lineH);
+  });
 }
 
 export function exportImage(pattern: Pattern) {
@@ -54,15 +86,20 @@ export function exportImage(pattern: Pattern) {
   const rowWidths = pattern.rows.map(rowContentWidthPx);
   const maxRowWidth = maxRowWidthPx(pattern);
 
-  const canvas = document.createElement("canvas");
-  canvas.width = padding * 2 + maxRowWidth + offsetShift + RISER_PAD;
-  canvas.height =
+  const dpr = 2;
+  const logicalW = padding * 2 + maxRowWidth + offsetShift + RISER_PAD;
+  const logicalH =
     padding * 2 + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY +
     (withConductor ? markGapY + markH : 0);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = logicalW * dpr;
+  canvas.height = logicalH * dpr;
   const ctx = canvas.getContext("2d")!;
+  ctx.scale(dpr, dpr);
 
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, logicalW, logicalH);
 
   ctx.fillStyle = CELL_TEXT_COLOR;
   ctx.font = "bold 20px sans-serif";
@@ -118,7 +155,7 @@ export function exportImage(pattern: Pattern) {
         ctx.fill();
         ctx.stroke();
 
-        drawFittedText(ctx, cellData.name || "", x + cellW / 2, y + cellH / 2, cellW - 12);
+        drawFittedText(ctx, cellData.name || "", x + cellW / 2, y + cellH / 2, cellW - 8, cellH);
 
         x += cellW + gapX;
         cellIdx++;
