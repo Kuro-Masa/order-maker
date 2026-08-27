@@ -20,7 +20,7 @@ function ShareBanner() {
 }
 
 function EditScreen() {
-  const { toolbarMode, members } = useApp();
+  const { toolbarMode, members, clearMembers } = useApp();
   return (
     <div className="editScreen">
       <h1 className="sr-only">オーダーメーカー</h1>
@@ -30,7 +30,10 @@ function EditScreen() {
         <GridView />
         {toolbarMode === "names" && members.length > 0 && (
           <div className="unplacedMembersArea">
-            <p className="unplacedMembersTitle">配置していないメンバー</p>
+            <div className="unplacedMembersHeader">
+              <p className="unplacedMembersTitle">配置していないメンバー</p>
+              <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
+            </div>
             <MemberChipsArea />
           </div>
         )}

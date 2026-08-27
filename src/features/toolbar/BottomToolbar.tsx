@@ -252,7 +252,7 @@ export function BottomToolbar() {
       {panelOpen && (
         <div className="modeSettingsPanel" style={{ height: panelHeight }}>
           <div className="panelResizeHandle" onPointerDown={handleResizePointerDown} />
-          {toolbarMode === "rows"  && <div className="panelContent"><RowSettingsContent /></div>}
+          {toolbarMode === "rows"  && <div className="panelContent"><p className="panelHint">列をタップして選択し、人数・段・横ずらしを設定できます。設定エリア下の「＋ 列を追加」でも列を増やせます。</p><RowSettingsContent /></div>}
           {toolbarMode === "names" && <MemberEditPanel />}
           {toolbarMode === "sort"  && <SortPanel />}
           {toolbarMode === "paint" && <PaintPanel />}

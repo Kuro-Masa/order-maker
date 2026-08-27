@@ -399,24 +399,18 @@ export function MemberChipsArea() {
 // ── Member pool (import / clear — shown in the panel) ─────────
 
 export function MemberPool() {
-  const { members, clearMembers } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <>
       <div className="memberPool">
-        <div className="poolImportRow">
-          <button type="button" className="poolImportTrigger" onClick={() => setDialogOpen(true)}>
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" aria-hidden="true">
-              <path d="M12 3v13M12 16l-4-4m4 4l4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M4 20h16" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-            メンバーを取り込む
-          </button>
-          {members.length > 0 && (
-            <button type="button" className="poolClearBtn" onClick={clearMembers}>クリア</button>
-          )}
-        </div>
+        <button type="button" className="poolImportTrigger" onClick={() => setDialogOpen(true)}>
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" aria-hidden="true">
+            <path d="M12 3v13M12 16l-4-4m4 4l4-4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 20h16" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          メンバーを取り込む
+        </button>
       </div>
 
       {dialogOpen && <ImportDialog onClose={() => setDialogOpen(false)} />}

@@ -1729,7 +1729,7 @@ svg {
 }
 
 .panelContent {
-  padding: 4px 16px 12px;
+  padding: 2px 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1741,6 +1741,7 @@ svg {
   font-size: 13px;
   color: var(--muted);
   line-height: 1.6;
+  margin: 0 0 8px;
 }
 
 /* Share panel: horizontal wrapping layout */
@@ -1764,18 +1765,6 @@ svg {
   flex-shrink: 0;
 }
 
-.poolImportRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.poolImportRow .poolImportTrigger {
-  margin-bottom: 0;
-  flex: 1;
-}
-
 .poolImportTrigger {
   appearance: none;
   border: 1.5px dashed var(--border);
@@ -1785,12 +1774,12 @@ svg {
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   width: 100%;
   font-family: inherit;
   font-size: 0.9rem;
   color: var(--accent);
-  margin-bottom: 8px;
   transition: border-color 0.15s;
 }
 
@@ -1815,10 +1804,17 @@ svg {
   padding: 4px 16px 16px;
 }
 
+.unplacedMembersHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .unplacedMembersTitle {
   font-size: 0.8rem;
   color: var(--muted);
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .memberChipsGrid {
