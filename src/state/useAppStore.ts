@@ -118,6 +118,7 @@ export function useAppStore() {
     const pattern = createDefaultPattern("パターン" + (state.patterns.length + 1));
     setState((prev) => ({ ...prev, patterns: [...prev.patterns, pattern], activeId: pattern.id }));
     setSelected(null);
+    setToolbarMode("rows");
   }
 
   function deleteActivePattern() {
