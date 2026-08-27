@@ -306,8 +306,21 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
 
 // ── Touch drag ────────────────────────────────────────────────
 
+const LONG_PRESS_MS = 350;
+const MOVE_CANCEL_PX = 10;
+
 function useTouchDrag() {
   const dragRef = useRef<{ member: Member; ghost: HTMLDivElement; offsetX: number; offsetY: number } | null>(null);
+  const pendingRef = useRef<{
+    member: Member;
+    el: HTMLElement;
+    pointerId: number;
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+    timer: ReturnType<typeof setTimeout>;
+  } | null>(null);
   const highlightRef = useRef<Element | null>(null);
 
   function clearHighlight() {
@@ -315,23 +328,44 @@ function useTouchDrag() {
     highlightRef.current = null;
   }
 
+  function cancelPending() {
+    if (pendingRef.current) {
+      clearTimeout(pendingRef.current.timer);
+      pendingRef.current = null;
+    }
+  }
+
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>, m: Member) {
     if (e.pointerType === "mouse") return;
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ghost = document.createElement("div");
-    ghost.className = "memberDragGhost";
-    ghost.textContent = m.name;
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
-    ghost.style.left = `${rect.left}px`;
-    ghost.style.top = `${rect.top}px`;
-    document.body.appendChild(ghost);
-    dragRef.current = { member: m, ghost, offsetX, offsetY };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const pointerId = e.pointerId;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const offsetX = startX - rect.left;
+    const offsetY = startY - rect.top;
+    cancelPending();
+    const timer = setTimeout(() => {
+      pendingRef.current = null;
+      const ghost = document.createElement("div");
+      ghost.className = "memberDragGhost";
+      ghost.textContent = m.name;
+      ghost.style.left = `${startX - offsetX}px`;
+      ghost.style.top = `${startY - offsetY}px`;
+      document.body.appendChild(ghost);
+      el.setPointerCapture(pointerId);
+      dragRef.current = { member: m, ghost, offsetX, offsetY };
+    }, LONG_PRESS_MS);
+    pendingRef.current = { member: m, el, pointerId, startX, startY, offsetX, offsetY, timer };
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (pendingRef.current) {
+      const dx = e.clientX - pendingRef.current.startX;
+      const dy = e.clientY - pendingRef.current.startY;
+      if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) cancelPending();
+      return;
+    }
     const drag = dragRef.current;
     if (!drag) return;
     e.preventDefault();
@@ -346,6 +380,7 @@ function useTouchDrag() {
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    cancelPending();
     const drag = dragRef.current;
     dragRef.current = null;
     drag?.ghost.remove();
