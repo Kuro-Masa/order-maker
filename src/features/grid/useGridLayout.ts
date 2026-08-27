@@ -67,29 +67,21 @@ export function useGridLayout(
     const left = minLeft - RISER_PAD;
     const width = maxRight - minLeft + RISER_PAD * 2;
 
+    const riserCenter = (minLeft + maxRight) / 2;
     const risers: RiserRect[] = [];
-    let i = 0;
-    while (i < pattern.rows.length) {
-      if (!rowOnRiser(pattern.rows[i])) {
-        i++;
-        continue;
-      }
-      const start = i;
-      while (i < pattern.rows.length && rowOnRiser(pattern.rows[i])) i++;
-      const end = i - 1;
-      const startRect = wraps[start].getBoundingClientRect();
-      const endRect = wraps[end].getBoundingClientRect();
-      const top = (startRect.top - gridRect.top) / s - RISER_PAD;
-      const bottom = (endRect.bottom - gridRect.top) / s + RISER_PAD;
-      const customCells = pattern.rows.slice(start, end + 1).find((r) => r.riserWidth != null)?.riserWidth;
+    for (let i = 0; i < pattern.rows.length; i++) {
+      if (!rowOnRiser(pattern.rows[i])) continue;
+      const wrapRect = wraps[i].getBoundingClientRect();
+      const rTop = (wrapRect.top - gridRect.top) / s - RISER_PAD;
+      const rBottom = (wrapRect.bottom - gridRect.top) / s + RISER_PAD;
+      const customCells = pattern.rows[i].riserWidth;
       let rLeft = left;
       let rWidth = width;
       if (customCells !== undefined) {
         rWidth = customCells * (CELL_W + GAP_X) - GAP_X + RISER_PAD * 2;
-        const center = (minLeft + maxRight) / 2;
-        rLeft = center - rWidth / 2;
+        rLeft = riserCenter - rWidth / 2;
       }
-      risers.push({ left: rLeft, top, width: rWidth, height: bottom - top, startRow: start });
+      risers.push({ left: rLeft, top: rTop, width: rWidth, height: rBottom - rTop, startRow: i });
     }
 
     // Align to the same center the conductor mark uses (row 0's unshifted
