@@ -1660,7 +1660,7 @@ svg {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 20px 0 8px;
+  padding: 6px 0 8px;
   display: flex;
   flex-direction: column;
 }
