@@ -47,6 +47,16 @@ export function GridView() {
 
   const total = totalCellCount(activePattern);
 
+  function formatUpdatedAt(ts: number | undefined): string {
+    if (!ts) return "";
+    const d = new Date(ts);
+    const mo = d.getMonth() + 1;
+    const da = d.getDate();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${mo}/${da} ${hh}:${mm}`;
+  }
+
   return (
     <>
     <div className="gridAboveBar">
@@ -68,6 +78,9 @@ export function GridView() {
         onClick={() => setZoom((z) => parseFloat(Math.min(maxZoom, z + zoomStep).toFixed(1)))}
       >＋</button>
       </div>
+      {activePattern.updatedAt && (
+        <span className="gridUpdatedAt">{formatUpdatedAt(activePattern.updatedAt)}</span>
+      )}
     </div>
     <section className="gridWrap" ref={wrapRef}>
       <div

@@ -32,6 +32,7 @@ export interface Pattern {
   lines: LineData[];
   shareId: string | null;
   members?: Member[];
+  updatedAt?: number;
 }
 
 export interface Member {

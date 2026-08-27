@@ -12,8 +12,11 @@ export function loadState(): AppState {
         if (!parsed.patterns.some((p: { id: string }) => p.id === activeId)) {
           activeId = parsed.patterns[0].id;
         }
+        const now = Date.now();
         return {
-          patterns: parsed.patterns,
+          patterns: parsed.patterns.map((p: { updatedAt?: number }) =>
+            p.updatedAt ? p : { ...p, updatedAt: now }
+          ),
           activeId,
           members: Array.isArray(parsed.members) ? parsed.members : [],
         };

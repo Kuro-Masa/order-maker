@@ -67,6 +67,7 @@ export function createDefaultPattern(name: string): Pattern {
     lines: [],
     shareId: null,
     members: [],
+    updatedAt: Date.now(),
   };
 }
 

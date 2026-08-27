@@ -85,7 +85,7 @@ export function useAppStore() {
 
   function updateActivePattern(updater: (p: Pattern) => Pattern) {
     if (!activePattern) return;
-    updatePatternById(activePattern.id, updater);
+    updatePatternById(activePattern.id, (p) => ({ ...updater(p), updatedAt: Date.now() }));
   }
 
   // ---- screen navigation ----

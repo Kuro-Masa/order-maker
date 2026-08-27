@@ -397,6 +397,12 @@ svg {
   color: var(--muted);
 }
 
+.gridUpdatedAt {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .gridZoomControls {
   display: flex;
   align-items: center;
