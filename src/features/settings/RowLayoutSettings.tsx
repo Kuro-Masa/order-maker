@@ -210,7 +210,7 @@ function RowEditorPanel({
 export function RowSettingsContent() {
   const {
     activePattern, updateRowSpec, removeRow, toggleRowOnRiser,
-    setRiserWidth, setRowShift, selectedEditRow, setSelectedEditRow,
+    setRiserWidth, setRowShift, selectedEditRow, setSelectedEditRow, addRow,
   } = useApp();
   const rows = activePattern.rows;
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -223,11 +223,6 @@ export function RowSettingsContent() {
 
   return (
     <div className="rowsEditor">
-      {rows.length === 0 && (
-        <p className="rowsEditorNote rowsEditorHint">
-          レイアウトで「＋ 列を追加」を押して列を追加してください。
-        </p>
-      )}
       {rows.map((row, r) => {
         const rowNum = rows.length - r;
         const isSelected = selectedEditRow === r;
@@ -250,6 +245,14 @@ export function RowSettingsContent() {
           </div>
         );
       })}
+      {rows.length === 0 && (
+        <p className="rowsEditorNote rowsEditorHint">
+          まだ列がありません。下のボタンで追加してください。
+        </p>
+      )}
+      <button type="button" className="settingsAddRowBtn" onClick={addRow}>
+        ＋ 列を追加
+      </button>
     </div>
   );
 }

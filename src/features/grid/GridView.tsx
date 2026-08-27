@@ -46,24 +46,25 @@ export function GridView() {
   const maxZoom = 1.5;
 
   return (
+    <>
+    <div className="gridZoomControls">
+      <button
+        type="button"
+        className="gridZoomBtn"
+        aria-label="縮小"
+        disabled={zoom <= minZoom}
+        onClick={() => setZoom((z) => parseFloat(Math.max(minZoom, z - zoomStep).toFixed(1)))}
+      >−</button>
+      <span className="gridZoomLabel">{Math.round(zoom * 100)}%</span>
+      <button
+        type="button"
+        className="gridZoomBtn"
+        aria-label="拡大"
+        disabled={zoom >= maxZoom}
+        onClick={() => setZoom((z) => parseFloat(Math.min(maxZoom, z + zoomStep).toFixed(1)))}
+      >＋</button>
+    </div>
     <section className="gridWrap" ref={wrapRef}>
-      <div className="gridZoomControls">
-        <button
-          type="button"
-          className="gridZoomBtn"
-          aria-label="縮小"
-          disabled={zoom <= minZoom}
-          onClick={() => setZoom((z) => parseFloat(Math.max(minZoom, z - zoomStep).toFixed(1)))}
-        >−</button>
-        <span className="gridZoomLabel">{Math.round(zoom * 100)}%</span>
-        <button
-          type="button"
-          className="gridZoomBtn"
-          aria-label="拡大"
-          disabled={zoom >= maxZoom}
-          onClick={() => setZoom((z) => parseFloat(Math.min(maxZoom, z + zoomStep).toFixed(1)))}
-        >＋</button>
-      </div>
       <div
         className="gridRows"
         ref={gridRef}
@@ -133,5 +134,6 @@ export function GridView() {
           ))}
       </div>
     </section>
+    </>
   );
 }
