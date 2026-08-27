@@ -560,12 +560,13 @@ export function useAppStore() {
     dismissShareUrl: () => setShareUrl(null),
     shareCurrentPattern,
     refreshShareFromServer,
-    members: state.members,
+    members: activePattern?.members ?? [],
     setMembers: (members: import("../types").Member[]) =>
-      setState((prev) => ({ ...prev, members })),
-    clearMembers: () => setState((prev) => ({ ...prev, members: [] })),
+      updateActivePattern((p) => ({ ...p, members })),
+    clearMembers: () =>
+      updateActivePattern((p) => ({ ...p, members: [] })),
     removeMember: (id: string) =>
-      setState((prev) => ({ ...prev, members: prev.members.filter((m) => m.id !== id) })),
+      updateActivePattern((p) => ({ ...p, members: (p.members ?? []).filter((m) => m.id !== id) })),
   };
 }
 

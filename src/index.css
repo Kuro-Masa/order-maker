@@ -2107,12 +2107,12 @@ svg {
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.22s ease;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .editSidebarDrawer.editSidebarDrawerOpen {
   transform: translateX(0);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
 }
 
 .editSidebarHead {

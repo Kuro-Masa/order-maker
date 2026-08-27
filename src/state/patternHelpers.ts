@@ -66,6 +66,7 @@ export function createDefaultPattern(name: string): Pattern {
     showCenterLine: false,
     lines: [],
     shareId: null,
+    members: [],
   };
 }
 

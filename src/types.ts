@@ -31,6 +31,7 @@ export interface Pattern {
   showCenterLine: boolean;
   lines: LineData[];
   shareId: string | null;
+  members?: Member[];
 }
 
 export interface Member {
