@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ImageIcon, TrashIcon } from "../../icons";
 import { CELL_W, GAP_X } from "../../constants";
-import { showsCenterLine, segmentsTotal } from "../../state/patternHelpers";
+import { segmentsTotal } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { Pattern } from "../../types";
 import { RowSettingsContent } from "../settings/RowLayoutSettings";
@@ -131,23 +131,13 @@ function PaintPanel() {
 }
 
 function LinesPanel() {
-  const { activePattern, toggleCenterLine, addLine, updateLinePos, removeLine } = useApp();
+  const { activePattern, addLine, updateLinePos, removeLine } = useApp();
   return (
     <div className="panelContent">
       <p className="panelHint">グリッド上の空いている場所をタップして縦線を追加。追加した線はドラッグで移動できます。</p>
-      <div className="linesActions">
-        <label className="conductorToggle">
-          <input
-            type="checkbox"
-            checked={showsCenterLine(activePattern)}
-            onChange={(e) => toggleCenterLine(e.target.checked)}
-          />
-          中心線を表示
-        </label>
-        <button type="button" className="btn" onClick={() => addLine(bestLinePos(activePattern))}>
-          縦線を追加
-        </button>
-      </div>
+      <button type="button" className="poolImportTrigger" onClick={() => addLine(bestLinePos(activePattern))}>
+        ＋ 縦線を追加
+      </button>
       {activePattern.lines.length > 0 && (
         <div className="linesList">
           {activePattern.lines.map((line) => (
