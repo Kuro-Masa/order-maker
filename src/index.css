@@ -2329,6 +2329,7 @@ svg {
     max-height: 55vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    background: var(--panel-bg);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
     border-top: 1px solid var(--border);
   }
