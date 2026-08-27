@@ -1670,6 +1670,7 @@ svg {
   flex-shrink: 0;
   background: var(--panel-bg);
   border-top: 1px solid var(--border);
+  position: relative;
 }
 
 .modeToolbar {
@@ -2316,4 +2317,19 @@ svg {
 .settingsAddRowBtn:hover {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* ── Landscape mobile: panel floats over grid ── */
+@media (orientation: landscape) and (max-height: 520px) {
+  .modeSettingsPanel {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    max-height: 55vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
+    border-top: 1px solid var(--border);
+  }
 }

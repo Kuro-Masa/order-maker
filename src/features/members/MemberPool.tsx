@@ -1,4 +1,5 @@
 import { useState, useRef, type ChangeEvent } from "react";
+import { createPortal } from "react-dom";
 import { useApp } from "../../state/AppStoreContext";
 import type { Member } from "../../types";
 
@@ -224,7 +225,7 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
     onClose();
   }
 
-  return (
+  return createPortal(
     <div className="memberDialogBackdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="memberDialog" role="dialog" aria-modal="true" aria-label="メンバーを取り込む">
         <h2 className="memberDialogTitle">メンバーを取り込む</h2>
@@ -298,7 +299,8 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
