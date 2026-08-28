@@ -189,7 +189,7 @@ export function ListScreen() {
               <rect x="4" y="10" width="7" height="3" rx="1.5" fill="white" opacity="0.55"/>
             </svg>
           </div>
-          <span className="listSidebarName">オーダーメーカー</span>
+          <span className="listSidebarName">narabi</span>
           <button type="button" className="sidebarCloseBtn" aria-label="サイドバーを閉じる" onClick={() => setSidebarOpen(false)}>✕</button>
         </div>
         <nav className="listSidebarNav">

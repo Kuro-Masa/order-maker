@@ -23,7 +23,7 @@ function EditScreen() {
   const { toolbarMode, members, clearMembers } = useApp();
   return (
     <div className="editScreen">
-      <h1 className="sr-only">オーダーメーカー</h1>
+      <h1 className="sr-only">narabi</h1>
       <TopBar />
       <ShareBanner />
       <div className="editBody">

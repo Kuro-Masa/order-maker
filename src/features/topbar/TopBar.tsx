@@ -99,7 +99,7 @@ function EditSidebarDrawer({
               <rect x="4" y="10" width="7" height="3" rx="1.5" fill="white" opacity="0.55" stroke="none" />
             </svg>
           </div>
-          <span className="editSidebarName">オーダーメーカー</span>
+          <span className="editSidebarName">narabi</span>
           <button
             type="button"
             className="editSidebarCloseBtn"

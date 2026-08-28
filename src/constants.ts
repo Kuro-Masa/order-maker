@@ -61,10 +61,10 @@ export const CENTER_LINE_COLOR = "#333333";
 export const CELL_MAX_LENGTH = 10;
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyDlQrgeQXoDHlw9OlYM92Om5mnh9_qlwTY",
-  authDomain: "order-maker-e0b6c.firebaseapp.com",
-  projectId: "order-maker-e0b6c",
-  storageBucket: "order-maker-e0b6c.firebasestorage.app",
-  messagingSenderId: "347811601828",
-  appId: "1:347811601828:web:3cb7b4abd5c81b8535b531",
+  apiKey: "AIzaSyCZUgRqccq4t3QrSiAc2upH7Bj8Addxjw8",
+  authDomain: "narabi-50d15.firebaseapp.com",
+  projectId: "narabi-50d15",
+  storageBucket: "narabi-50d15.firebasestorage.app",
+  messagingSenderId: "366782202726",
+  appId: "1:366782202726:web:4e3003110b2279dcadfea7",
 };
