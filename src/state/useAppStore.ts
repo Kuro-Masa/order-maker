@@ -7,6 +7,7 @@ import {
   createDefaultPattern,
   createPattern,
   createRow,
+  makeId,
   makeLineId,
   parseRowSpec,
   regenerateRowCells,
@@ -32,6 +33,7 @@ export function useAppStore() {
   const [selected, setSelected] = useState<Selected | null>(null);
   const [currentColor, setCurrentColor] = useState<string | null>(PALETTE[0]);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isSharedSession, setIsSharedSession] = useState(false);
   const [toolbarMode, setToolbarMode] = useState<string>("rows");
   const [selectedEditRow, setSelectedEditRow] = useState<number | null>(null);
 
@@ -167,6 +169,21 @@ export function useAppStore() {
     const trimmed = name.trim();
     if (!trimmed) return;
     updatePatternById(patternId, (p) => ({ ...p, name: trimmed }));
+  }
+
+  function duplicatePattern(patternId: string) {
+    const idx = state.patterns.findIndex((p) => p.id === patternId);
+    if (idx < 0) return;
+    const original = state.patterns[idx];
+    const copy: Pattern = JSON.parse(JSON.stringify(original));
+    copy.id = makeId();
+    copy.name = "コピー_" + original.name;
+    copy.shareId = null;
+    copy.updatedAt = Date.now();
+    const newPatterns = state.patterns.slice();
+    newPatterns.splice(idx + 1, 0, copy);
+    setState((prev) => ({ ...prev, patterns: newPatterns, activeId: copy.id }));
+    setSelected(null);
   }
 
   function deletePattern(patternId: string) {
@@ -470,6 +487,7 @@ export function useAppStore() {
     if (existing) {
       setState((prev) => ({ ...prev, activeId: existing.id }));
       ensureShareListener(existing);
+      setIsSharedSession(true);
       setScreen("edit");
       return;
     }
@@ -486,6 +504,7 @@ export function useAppStore() {
         pattern.shareId = shareId;
         setState((prev) => ({ ...prev, patterns: [...prev.patterns, pattern], activeId: pattern.id }));
         ensureShareListener(pattern);
+        setIsSharedSession(true);
         setScreen("edit");
       })
       .catch((e) => {
@@ -534,6 +553,7 @@ export function useAppStore() {
     currentColor,
     setCurrentColor,
     addPattern,
+    duplicatePattern,
     deleteActivePattern,
     switchPattern,
     renameActivePattern,
@@ -559,6 +579,7 @@ export function useAppStore() {
     exportImageFile,
     shareUrl,
     dismissShareUrl: () => setShareUrl(null),
+    isSharedSession,
     shareCurrentPattern,
     refreshShareFromServer,
     members: activePattern?.members ?? [],

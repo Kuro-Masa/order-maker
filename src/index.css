@@ -1495,6 +1495,24 @@ svg {
   background: var(--bg);
 }
 
+.topBarShareBtn {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topBarShareBtn:hover {
+  background: var(--bg);
+}
+
 /* ─────────────────────────────────────────
    Pattern name input in edit topbar
 ───────────────────────────────────────── */
@@ -2220,6 +2238,22 @@ svg {
 .editSidebarNewBtn:hover {
   background: rgba(58, 109, 240, 0.28);
 }
+.editSidebarDuplicateBtn {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.07);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 6px;
+  transition: background 0.12s;
+}
+.editSidebarDuplicateBtn:hover {
+  background: rgba(255, 255, 255, 0.13);
+}
 
 .editSidebarNavLabel {
   padding: 10px 14px 4px;
@@ -2333,4 +2367,151 @@ svg {
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
     border-top: 1px solid var(--border);
   }
+}
+
+/* ── Sidebar footer ── */
+
+.sidebarFooter {
+  margin-top: auto;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebarFooterLink {
+  all: unset;
+  display: block;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.45);
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.sidebarFooterLink:hover {
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.08);
+}
+
+/* ── Privacy modal ── */
+
+.privacyModal {
+  background: var(--panel-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.privacyModalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.privacyModalTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.privacyModalClose {
+  all: unset;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-sub);
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.privacyModalClose:hover { background: var(--hover-bg); }
+
+.privacyModalBody {
+  padding: 18px 20px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.privacyModalBody h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 16px 0 4px;
+  color: var(--text);
+}
+
+.privacyModalBody p {
+  margin-bottom: 8px;
+  color: var(--text-sub);
+}
+
+.privacyMailLink {
+  color: var(--accent);
+  text-decoration: none;
+}
+.privacyMailLink:hover { text-decoration: underline; }
+
+.privacyModalBody a {
+  color: var(--accent);
+}
+
+.privacyModalDate {
+  margin-top: 20px;
+  font-size: 11.5px;
+  color: var(--text-sub);
+  opacity: 0.6;
+}
+
+/* ── Shared session banner ── */
+
+.sharedSessionBanner {
+  background: #1a3a5c;
+  color: #7ec8f4;
+  font-size: 12.5px;
+  text-align: center;
+  padding: 6px 16px;
+  border-bottom: 1px solid #2a5a8c;
+  flex-shrink: 0;
+}
+
+/* ── Share panel ── */
+
+.sharePanelSection {
+  margin-bottom: 4px;
+}
+
+.sharePanelDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
+.shareLinkBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+}
+
+.shareLinkBtn:hover {
+  opacity: 0.88;
 }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { TrashIcon, EditModeIcon } from "../icons";
+import { TrashIcon, EditModeIcon, CopyIcon } from "../icons";
 import { useApp } from "../state/AppStoreContext";
 import type { Pattern } from "../types";
+import { PrivacyModal } from "./PrivacyModal";
 
 function GridIcon() {
   return (
@@ -73,10 +74,11 @@ interface CardProps {
   pattern: Pattern;
   onOpen: () => void;
   onRename: (name: string) => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }
 
-function LayoutCard({ pattern, onOpen, onRename, onDelete }: CardProps) {
+function LayoutCard({ pattern, onOpen, onRename, onDuplicate, onDelete }: CardProps) {
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(pattern.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -150,6 +152,15 @@ function LayoutCard({ pattern, onOpen, onRename, onDelete }: CardProps) {
           </button>
           <button
             type="button"
+            className="cardActionBtn"
+            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+            title="コピーして複製"
+            aria-label="コピーして複製"
+          >
+            <CopyIcon />
+          </button>
+          <button
+            type="button"
             className="cardActionBtn danger"
             onClick={handleDelete}
             title="削除"
@@ -164,8 +175,9 @@ function LayoutCard({ pattern, onOpen, onRename, onDelete }: CardProps) {
 }
 
 export function ListScreen() {
-  const { state, navigateToEdit, addPattern, renamePattern, deletePattern } = useApp();
+  const { state, navigateToEdit, addPattern, duplicatePattern, renamePattern, deletePattern } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   function handleNew() {
     addPattern();
@@ -198,11 +210,16 @@ export function ListScreen() {
             マイレイアウト
           </div>
         </nav>
-        <div className="listSidebarUser">
-          <div className="listSidebarAvatar">K</div>
-          <span className="listSidebarUserName">ログイン中</span>
+        <div className="sidebarFooter">
+          <button type="button" className="sidebarFooterLink" onClick={() => setPrivacyOpen(true)}>
+            プライバシーポリシー
+          </button>
+          <a href="mailto:viva.vital.voice@gmail.com" className="sidebarFooterLink">
+            お問い合わせ
+          </a>
         </div>
       </aside>
+      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
 
       {/* Main content */}
       <div className="listMain">
@@ -227,6 +244,7 @@ export function ListScreen() {
               pattern={p}
               onOpen={() => navigateToEdit(p.id)}
               onRename={(name) => renamePattern(p.id, name)}
+              onDuplicate={() => duplicatePattern(p.id)}
               onDelete={() => deletePattern(p.id)}
             />
           ))}

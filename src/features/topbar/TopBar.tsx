@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../../state/AppStoreContext";
 import type { Pattern } from "../../types";
+import { PrivacyModal } from "../../screens/PrivacyModal";
 
 function PatternNameInput() {
   const { activePattern, renamePattern } = useApp();
@@ -62,11 +63,19 @@ function EditSidebarDrawer({
   open: boolean;
   onClose: () => void;
 }) {
-  const { state, activePattern, navigateToEdit, navigateToList, addPattern } = useApp();
+  const { state, activePattern, navigateToEdit, navigateToList, addPattern, duplicatePattern } = useApp();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   function handleNew() {
     addPattern();
+    navigateToEdit();
+    onClose();
+  }
+
+  function handleDuplicate() {
+    if (!activePattern) return;
+    duplicatePattern(activePattern.id);
     navigateToEdit();
     onClose();
   }
@@ -115,6 +124,9 @@ function EditSidebarDrawer({
           <button type="button" className="editSidebarNewBtn" onClick={handleNew}>
             ＋ 新しいレイアウト
           </button>
+          <button type="button" className="editSidebarDuplicateBtn" onClick={handleDuplicate}>
+            コピーして複製
+          </button>
         </div>
 
         <div className="editSidebarNavLabel">最近のレイアウト</div>
@@ -134,13 +146,33 @@ function EditSidebarDrawer({
             <p className="editSidebarEmpty">レイアウトがありません</p>
           )}
         </nav>
+        <div className="sidebarFooter">
+          <button type="button" className="sidebarFooterLink" onClick={() => setPrivacyOpen(true)}>
+            プライバシーポリシー
+          </button>
+          <a href="mailto:viva.vital.voice@gmail.com" className="sidebarFooterLink">
+            お問い合わせ
+          </a>
+        </div>
       </div>
+      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
     </>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" aria-hidden="true">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="16 6 12 2 8 6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="12" y1="2" x2="12" y2="15" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
   );
 }
 
 export function TopBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { shareCurrentPattern } = useApp();
 
   return (
     <>
@@ -154,6 +186,15 @@ export function TopBar() {
           <HamburgerIcon />
         </button>
         <PatternNameInput />
+        <button
+          type="button"
+          className="topBarShareBtn"
+          aria-label="共有リンクをコピー"
+          onClick={shareCurrentPattern}
+          title="共有リンクをコピー"
+        >
+          <ShareIcon />
+        </button>
       </section>
       <EditSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>

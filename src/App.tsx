@@ -10,11 +10,21 @@ function ShareBanner() {
   if (!shareUrl) return null;
   return (
     <div className="shareBanner">
-      <span className="shareBannerLabel">共有リンク（クリップボードにコピー済み）:</span>
+      <span className="shareBannerLabel">共有リンクをコピーしました — このリンクを開いた人も編集できます（リアルタイム反映）</span>
       <a className="shareBannerUrl" href={shareUrl} target="_blank" rel="noopener noreferrer">
         {shareUrl}
       </a>
       <button type="button" className="shareBannerClose" onClick={dismissShareUrl} aria-label="閉じる">✕</button>
+    </div>
+  );
+}
+
+function SharedSessionBanner() {
+  const { isSharedSession } = useApp();
+  if (!isSharedSession) return null;
+  return (
+    <div className="sharedSessionBanner">
+      共有リンクで開いています — 編集内容はリアルタイムで共有されます
     </div>
   );
 }
@@ -25,6 +35,7 @@ function EditScreen() {
     <div className="editScreen">
       <h1 className="sr-only">narabi</h1>
       <TopBar />
+      <SharedSessionBanner />
       <ShareBanner />
       <div className="editBody">
         <GridView />
