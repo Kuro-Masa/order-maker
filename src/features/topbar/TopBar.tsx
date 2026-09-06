@@ -45,6 +45,15 @@ function HamburgerIcon() {
   );
 }
 
+function UndoIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 7v6h6" />
+      <path d="M3 13C5.5 7.5 11 5 17 7a9 9 0 0 1 4 7" />
+    </svg>
+  );
+}
+
 function GridIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -172,7 +181,7 @@ function ShareIcon() {
 
 export function TopBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { shareCurrentPattern } = useApp();
+  const { shareCurrentPattern, undo, canUndo } = useApp();
 
   return (
     <>
@@ -186,15 +195,27 @@ export function TopBar() {
           <HamburgerIcon />
         </button>
         <PatternNameInput />
-        <button
-          type="button"
-          className="topBarShareBtn"
-          aria-label="共有リンクをコピー"
-          onClick={shareCurrentPattern}
-          title="共有リンクをコピー"
-        >
-          <ShareIcon />
-        </button>
+        <div className="topBarRightGroup">
+          <button
+            type="button"
+            className="topBarUndoBtn"
+            aria-label="元に戻す"
+            title="元に戻す"
+            disabled={!canUndo}
+            onClick={undo}
+          >
+            <UndoIcon />
+          </button>
+          <button
+            type="button"
+            className="topBarShareBtn"
+            aria-label="共有リンクをコピー"
+            onClick={shareCurrentPattern}
+            title="共有リンクをコピー"
+          >
+            <ShareIcon />
+          </button>
+        </div>
       </section>
       <EditSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </>

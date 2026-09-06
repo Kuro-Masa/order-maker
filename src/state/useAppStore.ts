@@ -36,6 +36,7 @@ export function useAppStore() {
   const [isSharedSession, setIsSharedSession] = useState(false);
   const [toolbarMode, setToolbarMode] = useState<string>("rows");
   const [selectedEditRow, setSelectedEditRow] = useState<number | null>(null);
+  const [undoStack, setUndoStack] = useState<Pattern[]>([]);
 
   const stateRef = useRef(state);
   const shareUnsubRef = useRef<Unsubscribe | null>(null);
@@ -87,7 +88,15 @@ export function useAppStore() {
 
   function updateActivePattern(updater: (p: Pattern) => Pattern) {
     if (!activePattern) return;
+    setUndoStack((prev) => [...prev.slice(-49), activePattern]);
     updatePatternById(activePattern.id, (p) => ({ ...updater(p), updatedAt: Date.now() }));
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    const prev = undoStack[undoStack.length - 1];
+    setUndoStack((s) => s.slice(0, -1));
+    updatePatternById(prev.id, () => prev);
   }
 
   // ---- screen navigation ----
@@ -147,6 +156,7 @@ export function useAppStore() {
     if (id === state.activeId) return;
     setState((prev) => ({ ...prev, activeId: id }));
     setSelected(null);
+    setUndoStack([]);
     const pattern = state.patterns.find((p) => p.id === id);
     if (pattern?.shareId) {
       ensureShareListener(pattern);
@@ -589,6 +599,8 @@ export function useAppStore() {
       updateActivePattern((p) => ({ ...p, members: [] })),
     removeMember: (id: string) =>
       updateActivePattern((p) => ({ ...p, members: (p.members ?? []).filter((m) => m.id !== id) })),
+    undo,
+    canUndo: undoStack.length > 0,
   };
 }
 
