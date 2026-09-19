@@ -22,6 +22,12 @@ export interface PartSettings {
   counts: Record<string, number>;
 }
 
+export interface SpecialMarker {
+  id: string;
+  label: string;
+  side: "left" | "right";
+}
+
 export interface Pattern {
   id: string;
   name: string;
@@ -33,6 +39,7 @@ export interface Pattern {
   shareId: string | null;
   members?: Member[];
   updatedAt?: number;
+  specialMarkers?: SpecialMarker[];
 }
 
 export interface Member {

@@ -111,6 +111,13 @@ export function GridView() {
         )}
 
         <div className="conductorSeparator">
+          {(activePattern.specialMarkers ?? [])
+            .filter((m) => m.side === "left")
+            .map((m) => (
+              <div key={m.id} className="specialMark" title={m.label}>
+                {m.label}
+              </div>
+            ))}
           <div
             className="conductorMark"
             style={lastShift !== 0 ? { transform: `translateX(${lastShift}px)` } : undefined}
@@ -118,6 +125,13 @@ export function GridView() {
           >
             指揮
           </div>
+          {(activePattern.specialMarkers ?? [])
+            .filter((m) => m.side === "right")
+            .map((m) => (
+              <div key={m.id} className="specialMark" title={m.label}>
+                {m.label}
+              </div>
+            ))}
         </div>
 
         {layout.risers.map((rect, i) => (

@@ -76,7 +76,6 @@ export function exportImage(pattern: Pattern) {
   const cellH = CELL_H;
   const gapX = GAP_X;
   const gapY = GAP_Y;
-  const offsetShift = CELL_W / 2;
   const padding = 24;
   const titleH = 40;
   const markH = 44;
@@ -86,8 +85,33 @@ export function exportImage(pattern: Pattern) {
   const rowWidths = pattern.rows.map(rowContentWidthPx);
   const maxRowWidth = maxRowWidthPx(pattern);
 
+  // Compute actual horizontal bounds from all row positions
+  let drawnMinX = Infinity;
+  let drawnMaxX = -Infinity;
+  pattern.rows.forEach((_row, r) => {
+    const rowBaseX = padding + (maxRowWidth - rowWidths[r]) / 2 + rowShiftPx(pattern.rows[r]);
+    drawnMinX = Math.min(drawnMinX, rowBaseX - RISER_PAD);
+    drawnMaxX = Math.max(drawnMaxX, rowBaseX + rowWidths[r] + RISER_PAD);
+  });
+  if (!isFinite(drawnMinX)) { drawnMinX = padding; drawnMaxX = padding + maxRowWidth; }
+
+  // Also check conductor/marker bounds
+  const boundsMarkers = pattern.specialMarkers ?? [];
+  const frontRowMarkersForBounds = withConductor
+    ? [...boundsMarkers.filter((m) => m.side === "left"), { id: "_conductor", label: "指揮", side: "left" as const, isConductor: true }, ...boundsMarkers.filter((m) => m.side === "right")]
+    : boundsMarkers;
+  if (frontRowMarkersForBounds.length > 0) {
+    const lastRow = pattern.rows[pattern.rows.length - 1];
+    const centerX = padding + maxRowWidth / 2 + (lastRow ? rowShiftPx(lastRow) : 0);
+    const totalMarkW = frontRowMarkersForBounds.length * markH + (frontRowMarkersForBounds.length - 1) * 10;
+    drawnMinX = Math.min(drawnMinX, centerX - totalMarkW / 2 - 2);
+    drawnMaxX = Math.max(drawnMaxX, centerX + totalMarkW / 2 + 2);
+  }
+
+  // If content bleeds left of padding, shift all drawing right by xOffset
+  const xOffset = Math.max(0, padding - drawnMinX);
   const dpr = 2;
-  const logicalW = padding * 2 + maxRowWidth + offsetShift + RISER_PAD;
+  const logicalW = drawnMaxX + xOffset + padding;
   const logicalH =
     padding * 2 + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY +
     (withConductor ? markGapY + markH : 0);
@@ -97,6 +121,7 @@ export function exportImage(pattern: Pattern) {
   canvas.height = logicalH * dpr;
   const ctx = canvas.getContext("2d")!;
   ctx.scale(dpr, dpr);
+  if (xOffset > 0) ctx.translate(xOffset, 0);
 
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, logicalW, logicalH);
@@ -191,21 +216,48 @@ export function exportImage(pattern: Pattern) {
     ctx.stroke();
   });
 
-  if (withConductor) {
+  const specialMarkers = pattern.specialMarkers ?? [];
+  const frontRowMarkers = withConductor
+    ? [
+        ...specialMarkers.filter((m) => m.side === "left"),
+        { id: "_conductor", label: "指揮", side: "left" as const, isConductor: true },
+        ...specialMarkers.filter((m) => m.side === "right"),
+      ]
+    : specialMarkers;
+
+  if (frontRowMarkers.length > 0) {
     const markY =
       padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY + markGapY;
     const lastRow = pattern.rows[pattern.rows.length - 1];
-    const markCx = padding + maxRowWidth / 2 + (lastRow ? rowShiftPx(lastRow) : 0);
+    const centerX = padding + maxRowWidth / 2 + (lastRow ? rowShiftPx(lastRow) : 0);
     const markCy = markY + markH / 2;
-    ctx.fillStyle = CELL_TEXT_COLOR;
-    ctx.beginPath();
-    ctx.arc(markCx, markCy, markH / 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 13px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("指揮", markCx, markCy);
+    const markSpacing = markH + 10;
+    const totalW = frontRowMarkers.length * markH + (frontRowMarkers.length - 1) * 10;
+    const startX = centerX - totalW / 2 + markH / 2;
+
+    frontRowMarkers.forEach((m, i) => {
+      const isConductor = "isConductor" in m && m.isConductor;
+      const cx = startX + i * markSpacing;
+      if (isConductor) {
+        ctx.fillStyle = CELL_TEXT_COLOR;
+        ctx.beginPath();
+        ctx.arc(cx, markCy, markH / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+      } else {
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = CELL_TEXT_COLOR;
+        ctx.lineWidth = 2;
+        roundRect(ctx, cx - markH / 2, markY, markH, markH, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = CELL_TEXT_COLOR;
+      }
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(m.label, cx, markCy);
+    });
   }
 
   canvas.toBlob((blob) => {

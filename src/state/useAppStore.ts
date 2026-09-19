@@ -331,6 +331,31 @@ export function useAppStore() {
     updateActivePattern((p) => ({ ...p, lines: p.lines.filter((l) => l.id !== lineId) }));
   }
 
+  function clearColorFromCells(color: string) {
+    updateActivePattern((p) => ({
+      ...p,
+      rows: p.rows.map((row) => ({
+        ...row,
+        cells: row.cells.map((cell) =>
+          cell.color === color ? { ...cell, color: null } : cell
+        ),
+      })),
+    }));
+  }
+
+  function toggleSpecialMarker(id: string, label: string, side: "left" | "right") {
+    updateActivePattern((p) => {
+      const markers = p.specialMarkers ?? [];
+      const exists = markers.some((m) => m.id === id);
+      return {
+        ...p,
+        specialMarkers: exists
+          ? markers.filter((m) => m.id !== id)
+          : [...markers, { id, label, side }],
+      };
+    });
+  }
+
   // ---- cells ----
 
   function setCellName(rowIndex: number, cellIndex: number, name: string) {
@@ -599,6 +624,8 @@ export function useAppStore() {
       updateActivePattern((p) => ({ ...p, members: [] })),
     removeMember: (id: string) =>
       updateActivePattern((p) => ({ ...p, members: (p.members ?? []).filter((m) => m.id !== id) })),
+    clearColorFromCells,
+    toggleSpecialMarker,
     undo,
     canUndo: undoStack.length > 0,
   };

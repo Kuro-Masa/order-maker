@@ -338,6 +338,30 @@ svg {
   background-color: #fff;
 }
 
+.swatch.swatchAdd {
+  background: var(--panel-bg);
+  border: 2px dashed var(--border);
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swatch.swatchAdd:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.colorPickerInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .shareBanner {
   display: flex;
   align-items: center;
@@ -726,6 +750,51 @@ svg {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+.partSwatchWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.partSwatchRemove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--panel-bg);
+  border: none;
+  font-size: 0.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.75;
+}
+
+.partSwatchRemove:hover {
+  opacity: 1;
+}
+
+.partSwatch.partSwatchAdd {
+  background: var(--panel-bg);
+  border: 3px dashed var(--border);
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.partSwatch.partSwatchAdd:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
 .partCountDisplay {
   font-size: 1rem;
   font-weight: 600;
@@ -891,10 +960,31 @@ svg {
 .conductorSeparator {
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
   width: 100%;
   padding-top: 14px;
   margin-top: 6px;
   border-top: 1.5px dashed var(--border);
+}
+
+.specialMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-top: 6px;
+  flex: 0 0 auto;
+  text-align: center;
+  word-break: break-all;
+  padding: 2px;
 }
 
 /* Add row button in grid */
@@ -1500,6 +1590,8 @@ svg {
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .topBarShareBtn,
@@ -1525,7 +1617,8 @@ svg {
 .topBarUndoBtn:disabled {
   color: var(--muted);
   cursor: default;
-  opacity: 0.4;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 /* ─────────────────────────────────────────
