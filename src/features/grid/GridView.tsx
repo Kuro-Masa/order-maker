@@ -41,6 +41,13 @@ export function GridView() {
   const lastRow = activePattern.rows[activePattern.rows.length - 1];
   const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
 
+  // Extra padding so left-shifted rows (transform: translateX) stay within
+  // the scroll container and are reachable by scrolling.
+  const maxShiftPx = activePattern.rows.reduce(
+    (max, row) => Math.max(max, Math.abs(rowShiftPx(row))),
+    0
+  );
+
   const zoomStep = 0.1;
   const minZoom = 0.3;
   const maxZoom = 1.5;
@@ -86,7 +93,10 @@ export function GridView() {
       <div
         className="gridRows"
         ref={gridRef}
-        style={zoom !== 1 ? { transform: `scale(${zoom})`, transformOrigin: "top center" } : undefined}
+        style={{
+          ...(zoom !== 1 ? { transform: `scale(${zoom})`, transformOrigin: "top center" } : {}),
+          ...(maxShiftPx > 0 ? { paddingLeft: `${10 + maxShiftPx}px`, paddingRight: `${22 + maxShiftPx}px` } : {}),
+        }}
         onClick={handleGridClick}
       >
         {activePattern.rows.map((row, r) => (
