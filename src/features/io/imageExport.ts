@@ -85,15 +85,27 @@ export function exportImage(pattern: Pattern) {
   const rowWidths = pattern.rows.map(rowContentWidthPx);
   const maxRowWidth = maxRowWidthPx(pattern);
 
-  // Compute actual horizontal bounds from all row positions
-  let drawnMinX = Infinity;
-  let drawnMaxX = -Infinity;
+  // Compute row positions (needed for riserCenter too)
+  let minLeft = Infinity;
+  let maxRight = -Infinity;
   pattern.rows.forEach((_row, r) => {
     const rowBaseX = padding + (maxRowWidth - rowWidths[r]) / 2 + rowShiftPx(pattern.rows[r]);
-    drawnMinX = Math.min(drawnMinX, rowBaseX - RISER_PAD);
-    drawnMaxX = Math.max(drawnMaxX, rowBaseX + rowWidths[r] + RISER_PAD);
+    minLeft = Math.min(minLeft, rowBaseX);
+    maxRight = Math.max(maxRight, rowBaseX + rowWidths[r]);
   });
-  if (!isFinite(drawnMinX)) { drawnMinX = padding; drawnMaxX = padding + maxRowWidth; }
+  if (!isFinite(minLeft)) { minLeft = padding; maxRight = padding + maxRowWidth; }
+
+  const riserCenter = (minLeft + maxRight) / 2;
+  let drawnMinX = minLeft - RISER_PAD;
+  let drawnMaxX = maxRight + RISER_PAD;
+
+  // Custom riserWidth rows can extend beyond the auto span
+  pattern.rows.forEach((row) => {
+    if (!rowOnRiser(row) || row.riserWidth === undefined) return;
+    const rW = row.riserWidth * (CELL_W + GAP_X) - GAP_X + RISER_PAD * 2;
+    drawnMinX = Math.min(drawnMinX, riserCenter - rW / 2);
+    drawnMaxX = Math.max(drawnMaxX, riserCenter + rW / 2);
+  });
 
   // Lines (縦線) are drawn at linesCenter + line.pos
   const linesLastRowForBounds = pattern.rows[pattern.rows.length - 1];
@@ -142,36 +154,24 @@ export function exportImage(pattern: Pattern) {
   ctx.textBaseline = "top";
   ctx.fillText(pattern.name || "並び順", padding, padding);
 
-  // Every riser shares one common span wide enough to contain every row
-  // (including staggered ones), so all platforms line up and match width.
-  let minLeft = Infinity;
-  let maxRight = -Infinity;
-  pattern.rows.forEach((_row, r) => {
-    const rowBaseX = padding + (maxRowWidth - rowWidths[r]) / 2 + rowShiftPx(pattern.rows[r]);
-    minLeft = Math.min(minLeft, rowBaseX);
-    maxRight = Math.max(maxRight, rowBaseX + rowWidths[r]);
-  });
-  const riserLeft = minLeft - RISER_PAD;
-  const riserWidth = maxRight - minLeft + RISER_PAD * 2;
-  let ri = 0;
-  while (ri < pattern.rows.length) {
-    if (!rowOnRiser(pattern.rows[ri])) {
-      ri++;
-      continue;
+  // Draw each riser row individually to match the grid view (supports custom riserWidth per row)
+  pattern.rows.forEach((row, r) => {
+    if (!rowOnRiser(row)) return;
+    const rTop = padding + titleH + r * (cellH + gapY) - RISER_PAD;
+    const rBottom = padding + titleH + r * (cellH + gapY) + cellH + RISER_PAD;
+    let rLeft = minLeft - RISER_PAD;
+    let rW = maxRight - minLeft + RISER_PAD * 2;
+    if (row.riserWidth !== undefined) {
+      rW = row.riserWidth * (CELL_W + GAP_X) - GAP_X + RISER_PAD * 2;
+      rLeft = riserCenter - rW / 2;
     }
-    const riStart = ri;
-    while (ri < pattern.rows.length && rowOnRiser(pattern.rows[ri])) ri++;
-    const riEnd = ri - 1;
-    const riTop = padding + titleH + riStart * (cellH + gapY) - RISER_PAD;
-    const riBottom = padding + titleH + riEnd * (cellH + gapY) + cellH + RISER_PAD;
-
     ctx.fillStyle = RISER_COLOR;
     ctx.strokeStyle = RISER_BORDER;
     ctx.lineWidth = 1;
-    roundRect(ctx, riserLeft, riTop, riserWidth, riBottom - riTop, 8);
+    roundRect(ctx, rLeft, rTop, rW, rBottom - rTop, 8);
     ctx.fill();
     ctx.stroke();
-  }
+  });
 
   pattern.rows.forEach((row, r) => {
     const y = padding + titleH + r * (cellH + gapY);
