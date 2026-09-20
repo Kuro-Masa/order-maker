@@ -95,6 +95,14 @@ export function exportImage(pattern: Pattern) {
   });
   if (!isFinite(drawnMinX)) { drawnMinX = padding; drawnMaxX = padding + maxRowWidth; }
 
+  // Lines (縦線) are drawn at linesCenter + line.pos
+  const linesLastRowForBounds = pattern.rows[pattern.rows.length - 1];
+  const linesCenterForBounds = padding + maxRowWidth / 2 + (linesLastRowForBounds ? rowShiftPx(linesLastRowForBounds) : 0);
+  (pattern.lines || []).forEach((line) => {
+    drawnMinX = Math.min(drawnMinX, linesCenterForBounds + line.pos - 1);
+    drawnMaxX = Math.max(drawnMaxX, linesCenterForBounds + line.pos + 1);
+  });
+
   // Also check conductor/marker bounds
   const boundsMarkers = pattern.specialMarkers ?? [];
   const frontRowMarkersForBounds = withConductor
@@ -121,10 +129,12 @@ export function exportImage(pattern: Pattern) {
   canvas.height = logicalH * dpr;
   const ctx = canvas.getContext("2d")!;
   ctx.scale(dpr, dpr);
-  if (xOffset > 0) ctx.translate(xOffset, 0);
 
+  // Fill background before translate so the entire canvas is covered
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, logicalW, logicalH);
+
+  if (xOffset > 0) ctx.translate(xOffset, 0);
 
   ctx.fillStyle = CELL_TEXT_COLOR;
   ctx.font = "bold 20px sans-serif";
