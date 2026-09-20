@@ -9,10 +9,12 @@ export function buildPatternData(pattern: Pattern) {
     showCenterLine: showsCenterLine(pattern),
     lines: pattern.lines || [],
     partSettings: ensurePartSettings(pattern),
+    specialMarkers: pattern.specialMarkers ?? [],
     rows: pattern.rows.map((row) => ({
       segments: row.segments,
       gaps: row.gaps,
       onRiser: !!row.onRiser,
+      ...(row.riserWidth != null ? { riserWidth: row.riserWidth } : {}),
       shift: row.shift ?? 0,
       cells: row.cells,
     })),
@@ -54,7 +56,8 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
           }
 
           const shift = typeof r.shift === "number" ? r.shift : (r.stagger ? 1 : 0);
-          return { segments, gaps, cells, onRiser: !!r.onRiser, shift };
+          const riserWidth = typeof r.riserWidth === "number" && Number.isFinite(r.riserWidth) && r.riserWidth > 0 ? r.riserWidth : undefined;
+          return { segments, gaps, cells, onRiser: !!r.onRiser, shift, riserWidth };
         })
       : [createRow([DEFAULT_COL_COUNT])];
 
@@ -77,6 +80,12 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
         .filter((l): l is { id: string; pos: number } => l !== null)
     : [];
 
+  const specialMarkers: import("../../types").SpecialMarker[] = Array.isArray(data.specialMarkers)
+    ? data.specialMarkers
+        .filter((m) => m && typeof m.label === "string" && (m.side === "left" || m.side === "right"))
+        .map((m, i) => ({ id: typeof m.id === "string" ? m.id : `sm${i}`, label: m.label, side: m.side as "left" | "right" }))
+    : [];
+
   return {
     name: typeof data.name === "string" ? data.name : "",
     rows,
@@ -84,6 +93,7 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
     showConductor: data.showConductor !== false,
     showCenterLine: !!data.showCenterLine,
     lines,
+    specialMarkers,
   };
 }
 
@@ -94,4 +104,5 @@ export function applyNormalizedDataToPattern(pattern: Pattern, normalized: Norma
   pattern.showConductor = normalized.showConductor;
   pattern.showCenterLine = normalized.showCenterLine;
   pattern.lines = normalized.lines;
+  pattern.specialMarkers = normalized.specialMarkers;
 }

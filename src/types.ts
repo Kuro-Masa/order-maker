@@ -79,10 +79,12 @@ export interface PatternJson {
     segments?: number[];
     gaps?: number[];
     onRiser?: boolean;
+    riserWidth?: number;
     shift?: number;
     stagger?: boolean;
     cells?: { name?: string; color?: string | null }[];
   }[];
+  specialMarkers?: { id?: string; label: string; side: string }[];
   updatedAt?: unknown;
 }
 
@@ -93,4 +95,5 @@ export interface NormalizedPatternData {
   showConductor: boolean;
   showCenterLine: boolean;
   lines: LineData[];
+  specialMarkers: SpecialMarker[];
 }
