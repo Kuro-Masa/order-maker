@@ -68,7 +68,26 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === "Enter") e.preventDefault();
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+    e.preventDefault();
+    if (e.shiftKey) insertNewline(e.currentTarget);
+  }
+
+  function insertNewline(el: HTMLDivElement) {
+    if ((el.textContent || "").length >= CELL_MAX_LENGTH) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const nl = document.createTextNode("\n");
+    range.insertNode(nl);
+    range.setStartAfter(nl);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    // A trailing "\n" alone doesn't render an empty line; a <br> placeholder makes the caret's new line visible
+    if (el.lastChild?.nodeName !== "BR") el.appendChild(document.createElement("br"));
+    setCellName(r, c, el.textContent || "");
   }
 
   function handleClick() {

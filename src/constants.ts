@@ -47,7 +47,7 @@ export const DEFAULT_COL_COUNT = 6;
 export const DEFAULT_GAP_CELLS = 0.25;
 
 export const CELL_W = 44;
-export const CELL_H = 52;
+export const CELL_H = 40;
 export const GAP_X = 2;
 export const GAP_Y = 10;
 export const GRID_PAD_LEFT = 4;

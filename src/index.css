@@ -628,7 +628,7 @@ svg {
 
 .cell {
   width: 44px;
-  height: 52px;
+  height: 40px;
   min-width: 44px;
   flex: 0 0 auto;
   border: 2px solid var(--border);
@@ -645,6 +645,7 @@ svg {
   justify-content: center;
   overflow: hidden;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
   cursor: text;
 }
 
@@ -1973,7 +1974,7 @@ svg {
 .memberChip {
   flex-shrink: 0;
   width: 44px;
-  height: 52px;
+  height: 40px;
   background: var(--cell-bg);
   border: 2px dashed var(--border);
   border-radius: 10px;

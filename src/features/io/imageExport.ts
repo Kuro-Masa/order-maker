@@ -25,6 +25,7 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 function splitIntoLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, fontSize: number): string[] {
+  if (text.includes("\n")) return text.split("\n");
   ctx.font = fontSize + "px sans-serif";
   if (ctx.measureText(text).width <= maxWidth) return [text];
   // Try splitting at every possible position to find the best 2-line split
@@ -42,7 +43,7 @@ function splitIntoLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: n
   return [text.slice(0, bestSplit), text.slice(bestSplit)];
 }
 
-function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, maxWidth: number) {
+function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number, maxWidth: number, maxHeight: number) {
   if (!text) return;
   ctx.fillStyle = CELL_TEXT_COLOR;
   ctx.textAlign = "center";
@@ -53,10 +54,8 @@ function drawFittedText(ctx: CanvasRenderingContext2D, text: string, cx: number,
 
   // Shrink only if even 2-line split overflows
   while (fontSize > 8) {
-    const fits = lines.every((l) => {
-      ctx.font = fontSize + "px sans-serif";
-      return ctx.measureText(l).width <= maxWidth;
-    });
+    ctx.font = fontSize + "px sans-serif";
+    const fits = lines.length * fontSize * 1.3 <= maxHeight && lines.every((l) => ctx.measureText(l).width <= maxWidth);
     if (fits) break;
     fontSize -= 1;
     lines = splitIntoLines(ctx, text, maxWidth, fontSize);
@@ -190,7 +189,7 @@ export function exportImage(pattern: Pattern) {
         ctx.fill();
         ctx.stroke();
 
-        drawFittedText(ctx, cellData.name || "", x + cellW / 2, y + cellH / 2, cellW - 8);
+        drawFittedText(ctx, cellData.name || "", x + cellW / 2, y + cellH / 2, cellW - 8, cellH - 4);
 
         x += cellW + gapX;
         cellIdx++;
