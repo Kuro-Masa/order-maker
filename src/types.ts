@@ -86,6 +86,7 @@ export interface PatternJson {
   }[];
   specialMarkers?: { id?: string; label: string; side: string }[];
   updatedAt?: unknown;
+  writerId?: string;
 }
 
 export interface NormalizedPatternData {

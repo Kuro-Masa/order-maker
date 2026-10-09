@@ -20,11 +20,14 @@ import {
 import { exportImage as writeImage } from "../features/io/imageExport";
 import {
   buildShareUrl,
+  CLIENT_ID,
   fetchPatternFromFirestore,
   firebaseReady,
   listenToPattern,
+  pushMergedPatternToFirestore,
   pushPatternToFirestore,
 } from "../features/share/share";
+import { canonicalFromJson, canonicalFromPattern, merge3, sameData, type SyncData } from "../features/share/merge";
 
 export function useAppStore() {
   const [state, setState] = useState(() => loadState());
@@ -43,6 +46,8 @@ export function useAppStore() {
   const shareListenerPatternIdRef = useRef<string | null>(null);
   const shareWriteTimerRef = useRef<number | null>(null);
   const skipNextSharePushRef = useRef(false);
+  // Last version of the shared pattern known to be on the server; the base for merging edits
+  const shareBaseRef = useRef<{ patternId: string; data: SyncData } | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -53,12 +58,32 @@ export function useAppStore() {
     [state]
   );
 
+  function shareBaseFor(patternId: string): SyncData | null {
+    return shareBaseRef.current?.patternId === patternId ? shareBaseRef.current.data : null;
+  }
+
   function schedulePush(pattern: Pattern) {
     if (!firebaseReady() || !pattern.shareId) return;
+    const patternId = pattern.id;
     if (shareWriteTimerRef.current) window.clearTimeout(shareWriteTimerRef.current);
     shareWriteTimerRef.current = window.setTimeout(() => {
       shareWriteTimerRef.current = null;
-      pushPatternToFirestore(pattern).catch((e) => console.error(e));
+      // Read the latest state at send time, not the state when the timer was set
+      const latest = stateRef.current.patterns.find((p) => p.id === patternId);
+      if (!latest?.shareId) return;
+      const sent = canonicalFromPattern(latest);
+      pushMergedPatternToFirestore(latest, shareBaseFor(patternId))
+        .then((merged) => {
+          shareBaseRef.current = { patternId, data: merged };
+          if (sameData(merged, sent)) return;
+          // The server had edits from others: bring them in without dropping anything typed meanwhile
+          const current = stateRef.current.patterns.find((p) => p.id === patternId);
+          if (current) applySyncedData(patternId, merge3(sent, canonicalFromPattern(current), merged));
+        })
+        .catch((e) => {
+          console.error(e);
+          pushPatternToFirestore(latest).catch((e2) => console.error(e2));
+        });
     }, 800);
   }
 
@@ -76,6 +101,8 @@ export function useAppStore() {
   useEffect(() => {
     return () => {
       if (shareUnsubRef.current) shareUnsubRef.current();
+      shareUnsubRef.current = null;
+      shareListenerPatternIdRef.current = null;
     };
   }, []);
 
@@ -434,8 +461,42 @@ export function useAppStore() {
     }
     shareListenerPatternIdRef.current = pattern.id;
     shareUnsubRef.current = listenToPattern(pattern.shareId, (data) => {
-      applyRemoteSnapshotToPattern(pattern.id, data as PatternJson);
+      handleRemoteSnapshot(pattern.id, data as PatternJson);
     });
+  }
+
+  function handleRemoteSnapshot(patternId: string, data: PatternJson) {
+    const remote = canonicalFromJson(data);
+    const base = shareBaseFor(patternId);
+    // Echo of this tab's own write: local state is already at least this new
+    if (data.writerId === CLIENT_ID) {
+      if (!base) shareBaseRef.current = { patternId, data: remote };
+      return;
+    }
+    shareBaseRef.current = { patternId, data: remote };
+    const current = stateRef.current.patterns.find((p) => p.id === patternId);
+    if (!current || !base) {
+      applyRemoteSnapshotToPattern(patternId, data);
+      return;
+    }
+    // Keep local edits that haven't been sent yet instead of rolling them back
+    const merged = merge3(base, canonicalFromPattern(current), remote);
+    applySyncedData(patternId, merged);
+    if (!sameData(merged, remote)) schedulePush(current);
+  }
+
+  function applySyncedData(patternId: string, data: SyncData) {
+    const normalized = normalizePatternFromJson(data);
+    skipNextSharePushRef.current = true;
+    setState((prev) => ({
+      ...prev,
+      patterns: prev.patterns.map((p) => {
+        if (p.id !== patternId) return p;
+        const next = { ...p };
+        applyNormalizedDataToPattern(next, normalized);
+        return next;
+      }),
+    }));
   }
 
   function applyRemoteSnapshotToPattern(patternId: string, data: PatternJson) {
@@ -468,6 +529,7 @@ export function useAppStore() {
     }
     try {
       await pushPatternToFirestore(pattern);
+      shareBaseRef.current = { patternId: pattern.id, data: canonicalFromPattern(pattern) };
       ensureShareListener(pattern);
       const shareUrl = buildShareUrl(pattern.shareId!);
       if (navigator.clipboard?.writeText) {

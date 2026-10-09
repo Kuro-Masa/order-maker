@@ -4,6 +4,7 @@ import {
   getDoc,
   getFirestore,
   onSnapshot,
+  runTransaction,
   serverTimestamp,
   setDoc,
   type DocumentData,
@@ -12,10 +13,14 @@ import {
 } from "firebase/firestore";
 import { firebaseConfig } from "../../constants";
 import { buildPatternData } from "../io/json";
-import type { Pattern } from "../../types";
+import type { Pattern, PatternJson } from "../../types";
+import { canonicalFromJson, canonicalFromPattern, merge3, type SyncData } from "./merge";
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
+
+// Identifies this tab's writes so their echoes from the listener can be ignored
+export const CLIENT_ID = Math.random().toString(36).slice(2);
 
 export function firebaseReady(): boolean {
   if (db) return true;
@@ -45,7 +50,20 @@ export function buildShareUrl(shareId: string): URL {
 export async function pushPatternToFirestore(pattern: Pattern) {
   if (!pattern.shareId) return;
   const data = buildPatternData(pattern);
-  await setDoc(shareDocRef(pattern.shareId), { ...data, updatedAt: serverTimestamp() });
+  await setDoc(shareDocRef(pattern.shareId), { ...data, writerId: CLIENT_ID, updatedAt: serverTimestamp() });
+}
+
+// Writes local changes on top of the latest server copy, so edits another member made
+// since `base` (the last version this tab synced) are kept instead of overwritten.
+export async function pushMergedPatternToFirestore(pattern: Pattern, base: SyncData | null): Promise<SyncData> {
+  const ref = shareDocRef(pattern.shareId!);
+  const local = canonicalFromPattern(pattern);
+  return runTransaction(db!, async (tx) => {
+    const snap = await tx.get(ref);
+    const merged = snap.exists() && base ? merge3(base, local, canonicalFromJson(snap.data() as PatternJson)) : local;
+    tx.set(ref, { ...merged, writerId: CLIENT_ID, updatedAt: serverTimestamp() });
+    return merged;
+  });
 }
 
 export async function fetchPatternFromFirestore(shareId: string): Promise<DocumentData | null> {
