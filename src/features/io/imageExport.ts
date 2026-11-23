@@ -13,7 +13,7 @@ import {
 import { getGapPx, maxRowWidthPx, rowContentWidthPx, rowOnRiser, rowShiftPx, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 import { downloadBlob, fileBaseName } from "./download";
-import { cellCenterOffsets, curveExtraDrop, curvePoint, curveRadii, riserHalfAngles, RISER_BAND_HALF } from "../../state/curve";
+import { cellCenterOffsets, curveExtraDrop, curvePoint, curveRadii, radialFrame, radialLine, riserHalfAngles, RISER_BAND_HALF } from "../../state/curve";
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -137,6 +137,20 @@ export function exportImage(pattern: Pattern) {
   const extraDrop = curveExtraDrop(pattern);
   const axisX = padding + maxRowWidth / 2;
   const rowCy = (r: number) => padding + titleH + r * (cellH + gapY) + cellH / 2;
+  // On curved rows, guide lines run along radii (same as the grid view)
+  const radial = radii ? radialFrame(radii, axisX, rowCy(pattern.rows.length - 1)) : null;
+  const radialEnds = (pos: number, deg: number) => {
+    const l = radialLine(radial!, pos, deg);
+    return [l.x, l.y, l.x + l.length * Math.sin(l.angle), l.y - l.length * Math.cos(l.angle)] as const;
+  };
+  if (radial) {
+    const ends = (pattern.lines || []).map((l) => radialEnds(l.pos, l.angle ?? 0));
+    if (showsCenterLine(pattern)) ends.push(radialEnds(0, 0));
+    ends.forEach(([x1, , x2]) => {
+      drawnMinX = Math.min(drawnMinX, x1 - 1, x2 - 1);
+      drawnMaxX = Math.max(drawnMaxX, x1 + 1, x2 + 1);
+    });
+  }
   if (radii && riserAngles) {
     pattern.rows.forEach((row, r) => {
       if (!rowOnRiser(row)) return;
@@ -270,8 +284,14 @@ export function exportImage(pattern: Pattern) {
     ctx.strokeStyle = CENTER_LINE_COLOR;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(linesCenter, linesTop);
-    ctx.lineTo(linesCenter, linesBottom);
+    if (radial) {
+      const [x1, y1, x2, y2] = radialEnds(0, 0);
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+    } else {
+      ctx.moveTo(linesCenter, linesTop);
+      ctx.lineTo(linesCenter, linesBottom);
+    }
     ctx.stroke();
   }
 
@@ -283,6 +303,13 @@ export function exportImage(pattern: Pattern) {
     ctx.strokeStyle = LINE_COLOR;
     ctx.lineWidth = 2;
     ctx.beginPath();
+    if (radial) {
+      const [x1, y1, x2, y2] = radialEnds(line.pos, line.angle ?? 0);
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      return;
+    }
     ctx.moveTo(x + len * Math.sin(rad), linesBottom - len * Math.cos(rad));
     ctx.lineTo(x, linesBottom);
     ctx.stroke();

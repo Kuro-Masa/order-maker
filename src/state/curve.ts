@@ -106,3 +106,51 @@ export function curveExtraDrop(pattern: Pattern): number {
   });
   return Math.ceil(drop);
 }
+
+// ---- guide lines on curved rows ----
+// A line's `pos` is its arc distance from the center axis, measured at the middle
+// radius, so it runs radially from the front row's inner edge to the back row's outer edge.
+
+export interface RadialFrame {
+  cx: number; // circle center
+  cy: number;
+  rIn: number;
+  rOut: number;
+  rRef: number;
+}
+
+export function radialFrame(radii: number[], cx: number, frontRowCenterY: number): RadialFrame {
+  const front = radii[radii.length - 1];
+  const back = radii[0];
+  const rIn = Math.max(1, front - CELL_H / 2);
+  const rOut = back + CELL_H / 2;
+  return { cx, cy: frontRowCenterY + front, rIn, rOut, rRef: (rIn + rOut) / 2 };
+}
+
+export interface RadialLine {
+  x: number; // inner (front) end, the pivot
+  y: number;
+  length: number;
+  angle: number; // radians, clockwise from "up"
+}
+
+export function radialLine(frame: RadialFrame, pos: number, extraDeg = 0): RadialLine {
+  const phi = pos / frame.rRef;
+  return {
+    x: frame.cx + frame.rIn * Math.sin(phi),
+    y: frame.cy - frame.rIn * Math.cos(phi),
+    length: frame.rOut - frame.rIn,
+    angle: phi + (extraDeg * Math.PI) / 180,
+  };
+}
+
+// Inverse: the `pos` of a radial line through point (x, y)
+export function radialPosAt(frame: RadialFrame, x: number, y: number): number {
+  return Math.atan2(x - frame.cx, frame.cy - y) * frame.rRef;
+}
+
+// Angular half-extent of a row including its "+" buttons, for the selection outline
+export function rowOutlineHalfAngle(row: RowData, radius: number, withAddBtns: boolean): number {
+  const pad = withAddBtns ? 22 + 4 + 6 : 6;
+  return Math.min(Math.PI, (rowHalfExtent(row) + pad) / radius);
+}

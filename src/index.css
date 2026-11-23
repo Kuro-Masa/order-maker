@@ -526,6 +526,10 @@ svg {
 :root[data-theme="dark"] .riserArc { fill: #4a3c28; stroke: #4a3c28; }
 :root[data-theme="light"] .riserArc { fill: #d9c7a8; stroke: #d9c7a8; }
 .riserArcs.riserSelectable { z-index: 0; }
+.rowSelectArc { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linejoin: round; }
+/* curved rows draw their selection as an arc (above); the straight box would not match */
+.row.rowCurved.rowSelectable:hover,
+.row.rowCurved.rowSelectedForEdit { box-shadow: none; }
 .riserArcs.riserSelectable .riserArc { pointer-events: all; cursor: pointer; transition: filter 0.12s; }
 .riserArcs.riserSelectable .riserArc:hover { filter: brightness(0.92); }
 

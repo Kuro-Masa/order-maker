@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { radialLine, type RadialFrame } from "../../state/curve";
 
 export function GuideLine({
   center,
@@ -7,6 +8,7 @@ export function GuideLine({
   isCenterLine = false,
   pos = 0,
   angle = 0,
+  radial,
   draggable = false,
   onDragEnd,
 }: {
@@ -16,6 +18,7 @@ export function GuideLine({
   isCenterLine?: boolean;
   pos?: number;
   angle?: number;
+  radial?: RadialFrame; // set when rows are curved: the line runs along a radius
   draggable?: boolean;
   onDragEnd?: (newPos: number) => void;
 }) {
@@ -53,17 +56,28 @@ export function GuideLine({
   }
 
   const left = center + (isCenterLine ? 0 : dragPos);
+  let style: CSSProperties = {
+    left,
+    top,
+    height,
+    ...(angle ? { transform: `translateX(-50%) rotate(${angle}deg)`, transformOrigin: "50% 100%" } : {}),
+  };
+  if (radial) {
+    const l = radialLine(radial, isCenterLine ? 0 : dragPos, isCenterLine ? 0 : angle);
+    style = {
+      left: l.x,
+      top: l.y - l.length,
+      height: l.length,
+      transform: `translateX(-50%) rotate(${l.angle}rad)`,
+      transformOrigin: "50% 100%",
+    };
+  }
 
   return (
     <div
       ref={elRef}
       className={"guideLine guideLineV" + (isCenterLine ? " centerLine" : "") + (draggable ? " draggable" : "")}
-      style={{
-        left,
-        top,
-        height,
-        ...(angle ? { transform: `translateX(-50%) rotate(${angle}deg)`, transformOrigin: "50% 100%" } : {}),
-      }}
+      style={style}
       onClick={(e) => e.stopPropagation()}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

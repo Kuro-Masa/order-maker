@@ -40,7 +40,7 @@ export function Row({
   let cellIdx = 0;
   return (
     <div
-      className={"row" + (isRowsMode ? " rowSelectable" : "") + (isSelected ? " rowSelectedForEdit" : "")}
+      className={"row" + (radius ? " rowCurved" : "") + (isRowsMode ? " rowSelectable" : "") + (isSelected ? " rowSelectedForEdit" : "")}
       style={rowShiftPx(row) !== 0 ? { transform: `translateX(${rowShiftPx(row)}px)` } : undefined}
       onClick={isRowsMode ? () => setSelectedEditRow(r) : undefined}
     >

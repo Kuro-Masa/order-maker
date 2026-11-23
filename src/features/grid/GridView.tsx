@@ -4,11 +4,11 @@ import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
 import { GuideLine } from "./GuideLine";
 import { useGridLayout } from "./useGridLayout";
-import { arcBandPath, curveExtraDrop, curveRadii, riserHalfAngles, RISER_BAND_HALF } from "../../state/curve";
+import { arcBandPath, curveExtraDrop, curveRadii, radialFrame, radialPosAt, riserHalfAngles, rowOutlineHalfAngle, RISER_BAND_HALF } from "../../state/curve";
 import { rowOnRiser } from "../../state/patternHelpers";
 
 export function GridView() {
-  const { activePattern, mode, addLine, updateLinePos, toolbarMode, setSelectedEditRow, addRow } = useApp();
+  const { activePattern, mode, addLine, updateLinePos, toolbarMode, selectedEditRow, setSelectedEditRow, addRow } = useApp();
   const [zoom, setZoom] = useState(1);
   const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -21,12 +21,28 @@ export function GridView() {
     el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
   }, [activePattern.id]);
 
+  const radii = curveRadii(activePattern);
+  const extraDrop = curveExtraDrop(activePattern);
+  const riserAngles = radii ? riserHalfAngles(activePattern, radii) : null;
+  const curveReady = !!radii && layout.rowCenters.length === activePattern.rows.length;
+  const radial =
+    radii && curveReady
+      ? radialFrame(radii, layout.axis, layout.rowCenters[activePattern.rows.length - 1])
+      : undefined;
+  const isRowsMode = toolbarMode === "rows";
+
   function handleGridClick(e: MouseEvent<HTMLDivElement>) {
     if (mode !== "line") return;
     const wraps = (cellsWrapRefs.current || []).filter(Boolean) as HTMLDivElement[];
     if (wraps.length === 0 || !gridRef.current) return;
 
     const gridRect = gridRef.current.getBoundingClientRect();
+    if (radial) {
+      const x = (e.clientX - gridRect.left) / zoom;
+      const y = (e.clientY - gridRect.top) / zoom;
+      addLine(Math.round(radialPosAt(radial, x, y)));
+      return;
+    }
     let minLeft = Infinity;
     let maxRight = -Infinity;
     wraps.forEach((w) => {
@@ -40,9 +56,6 @@ export function GridView() {
     addLine(clickX - center);
   }
 
-  const radii = curveRadii(activePattern);
-  const extraDrop = curveExtraDrop(activePattern);
-  const riserAngles = radii ? riserHalfAngles(activePattern, radii) : null;
 
   const lastRow = activePattern.rows[activePattern.rows.length - 1];
   const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
@@ -153,7 +166,7 @@ export function GridView() {
             ))}
         </div>
 
-        {radii && riserAngles && layout.rowCenters.length === activePattern.rows.length && (
+        {radii && riserAngles && curveReady && (
           <svg
             className={"riserArcs" + (toolbarMode === "rows" ? " riserSelectable" : "")}
             width={1}
@@ -177,6 +190,24 @@ export function GridView() {
                 />
               );
             })}
+            {isRowsMode && selectedEditRow !== null && selectedEditRow < activePattern.rows.length && (() => {
+              const r = selectedEditRow;
+              const R = radii[r];
+              // matches the straight outline: 6px ring around the 44px-tall row
+              const band = 22 + 3;
+              return (
+                <path
+                  className="rowSelectArc"
+                  d={arcBandPath(
+                    layout.axis,
+                    layout.rowCenters[r] + R,
+                    Math.max(1, R - band),
+                    R + band,
+                    rowOutlineHalfAngle(activePattern.rows[r], R, true),
+                  )}
+                />
+              );
+            })()}
           </svg>
         )}
 
@@ -195,6 +226,7 @@ export function GridView() {
             top={layout.lines.top}
             height={layout.lines.bottom - layout.lines.top}
             isCenterLine
+            radial={radial}
           />
         )}
 
@@ -207,6 +239,7 @@ export function GridView() {
               height={layout.lines!.bottom - layout.lines!.top}
               pos={line.pos}
               angle={line.angle}
+              radial={radial}
               draggable={mode === "line"}
               onDragEnd={(newPos) => updateLinePos(line.id, newPos)}
             />
