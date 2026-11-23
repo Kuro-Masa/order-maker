@@ -32,3 +32,24 @@ export function loadState(): AppState {
 export function saveState(state: AppState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
+
+// Last server version of each shared pattern, kept across reloads so local edits made
+// before a reload (or while offline) can still be merged instead of overwritten
+const SHARE_BASES_KEY = STORAGE_KEY + "_share_bases";
+
+export function loadShareBases<T>(): Record<string, T> {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SHARE_BASES_KEY) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveShareBases(bases: Record<string, unknown>) {
+  try {
+    localStorage.setItem(SHARE_BASES_KEY, JSON.stringify(bases));
+  } catch {
+    // storage full or unavailable: the base stays in memory only
+  }
+}

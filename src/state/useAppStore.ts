@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Unsubscribe } from "firebase/firestore";
 import { DEFAULT_COL_COUNT, PALETTE, PART_SCHEMES } from "../constants";
 import type { Mode, Pattern, PatternJson, Selected } from "../types";
-import { loadState, saveState } from "./persistence";
+import { loadShareBases, loadState, saveShareBases, saveState } from "./persistence";
 import {
   createDefaultPattern,
   createPattern,
@@ -39,15 +39,18 @@ export function useAppStore() {
   const [isSharedSession, setIsSharedSession] = useState(false);
   const [toolbarMode, setToolbarMode] = useState<string>("rows");
   const [selectedEditRow, setSelectedEditRow] = useState<number | null>(null);
-  const [undoStack, setUndoStack] = useState<Pattern[]>([]);
+  // Each entry keeps the pattern before and after one local edit, so undo can revert just that edit
+  const [undoStack, setUndoStack] = useState<{ before: Pattern; after: Pattern }[]>([]);
 
   const stateRef = useRef(state);
   const shareUnsubRef = useRef<Unsubscribe | null>(null);
   const shareListenerPatternIdRef = useRef<string | null>(null);
-  const shareWriteTimerRef = useRef<number | null>(null);
-  const skipNextSharePushRef = useRef(false);
-  // Last version of the shared pattern known to be on the server; the base for merging edits
-  const shareBaseRef = useRef<{ patternId: string; data: SyncData } | null>(null);
+  // Last version of each shared pattern known to be on the server; the base for merging edits
+  const shareBasesRef = useRef<Record<string, SyncData>>(loadShareBases<SyncData>());
+  const pushTimersRef = useRef(new Map<string, number>());
+  const pushInFlightRef = useRef(new Set<string>());
+  const pushAgainRef = useRef(new Set<string>());
+  const prevPatternsRef = useRef<Pattern[] | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -58,52 +61,106 @@ export function useAppStore() {
     [state]
   );
 
-  function shareBaseFor(patternId: string): SyncData | null {
-    return shareBaseRef.current?.patternId === patternId ? shareBaseRef.current.data : null;
+  function setShareBase(patternId: string, data: SyncData) {
+    const alive = new Set(stateRef.current.patterns.map((p) => p.id));
+    alive.add(patternId);
+    const next: Record<string, SyncData> = {};
+    for (const [id, d] of Object.entries(shareBasesRef.current)) if (alive.has(id)) next[id] = d;
+    next[patternId] = data;
+    shareBasesRef.current = next;
+    saveShareBases(next);
   }
 
-  function schedulePush(pattern: Pattern) {
-    if (!firebaseReady() || !pattern.shareId) return;
-    const patternId = pattern.id;
-    if (shareWriteTimerRef.current) window.clearTimeout(shareWriteTimerRef.current);
-    shareWriteTimerRef.current = window.setTimeout(() => {
-      shareWriteTimerRef.current = null;
-      // Read the latest state at send time, not the state when the timer was set
-      const latest = stateRef.current.patterns.find((p) => p.id === patternId);
-      if (!latest?.shareId) return;
-      const sent = canonicalFromPattern(latest);
-      pushMergedPatternToFirestore(latest, shareBaseFor(patternId))
-        .then((merged) => {
-          shareBaseRef.current = { patternId, data: merged };
-          if (sameData(merged, sent)) return;
-          // The server had edits from others: bring them in without dropping anything typed meanwhile
-          const current = stateRef.current.patterns.find((p) => p.id === patternId);
-          if (current) applySyncedData(patternId, merge3(sent, canonicalFromPattern(current), merged));
-        })
-        .catch((e) => {
-          console.error(e);
-          pushPatternToFirestore(latest).catch((e2) => console.error(e2));
-        });
-    }, 800);
+  function schedulePush(patternId: string, delay = 800) {
+    if (!firebaseReady()) return;
+    const timers = pushTimersRef.current;
+    const pending = timers.get(patternId);
+    if (pending) window.clearTimeout(pending);
+    timers.set(
+      patternId,
+      window.setTimeout(() => {
+        timers.delete(patternId);
+        void pushNow(patternId);
+      }, delay)
+    );
+  }
+
+  function flushPendingPushes() {
+    for (const [patternId, timer] of pushTimersRef.current) {
+      window.clearTimeout(timer);
+      pushTimersRef.current.delete(patternId);
+      void pushNow(patternId);
+    }
+  }
+
+  async function pushNow(patternId: string) {
+    // One write per pattern at a time, so each push merges on top of the previous result
+    if (pushInFlightRef.current.has(patternId)) {
+      pushAgainRef.current.add(patternId);
+      return;
+    }
+    // Read the latest state at send time, not the state when the timer was set
+    const latest = stateRef.current.patterns.find((p) => p.id === patternId);
+    if (!latest?.shareId) return;
+    const base = shareBasesRef.current[patternId];
+    // Without a known server version a write could wipe others' edits: wait for the listener
+    if (!base) return;
+    const sent = canonicalFromPattern(latest);
+    if (sameData(sent, base)) return; // nothing local to send
+    pushInFlightRef.current.add(patternId);
+    let retryDelay: number | null = null;
+    try {
+      const merged = await pushMergedPatternToFirestore(latest, base);
+      setShareBase(patternId, merged);
+      if (!sameData(merged, sent)) {
+        // The server had edits from others: bring them in without dropping anything typed meanwhile
+        const current = stateRef.current.patterns.find((p) => p.id === patternId);
+        if (current) applySyncedData(patternId, merge3(sent, canonicalFromPattern(current), merged));
+      }
+    } catch (e) {
+      // Offline or contention: never fall back to a blind overwrite, just try the merge again later
+      console.error(e);
+      retryDelay = 5000;
+    } finally {
+      pushInFlightRef.current.delete(patternId);
+      if (pushAgainRef.current.delete(patternId)) retryDelay = Math.min(retryDelay ?? 0, 300);
+      if (retryDelay !== null) schedulePush(patternId, retryDelay);
+    }
   }
 
   useEffect(() => {
     saveState(state);
-    if (skipNextSharePushRef.current) {
-      skipNextSharePushRef.current = false;
-      return;
+    // Queue a push for every shared pattern that changed; pushNow skips ones that match the server
+    const prev = prevPatternsRef.current;
+    prevPatternsRef.current = state.patterns;
+    for (const p of state.patterns) {
+      if (!p.shareId) continue;
+      if (prev && prev.find((q) => q.id === p.id) === p) continue;
+      schedulePush(p.id);
     }
-    const pattern = state.patterns.find((p) => p.id === state.activeId);
-    if (pattern && pattern.shareId) schedulePush(pattern);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   useEffect(() => {
+    // Send pending edits right away when the app goes to the background or comes back online
+    function onVisibility() {
+      if (document.visibilityState === "hidden") flushPendingPushes();
+    }
+    function onOnline() {
+      for (const p of stateRef.current.patterns) if (p.shareId) schedulePush(p.id, 0);
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", flushPendingPushes);
+    window.addEventListener("online", onOnline);
     return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", flushPendingPushes);
+      window.removeEventListener("online", onOnline);
       if (shareUnsubRef.current) shareUnsubRef.current();
       shareUnsubRef.current = null;
       shareListenerPatternIdRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function updatePatternById(patternId: string, updater: (p: Pattern) => Pattern) {
@@ -115,15 +172,18 @@ export function useAppStore() {
 
   function updateActivePattern(updater: (p: Pattern) => Pattern) {
     if (!activePattern) return;
-    setUndoStack((prev) => [...prev.slice(-49), activePattern]);
-    updatePatternById(activePattern.id, (p) => ({ ...updater(p), updatedAt: Date.now() }));
+    const before = activePattern;
+    const after = { ...updater(before), updatedAt: Date.now() };
+    setUndoStack((prev) => [...prev.slice(-49), { before, after }]);
+    updatePatternById(before.id, (p) => (p === before ? after : { ...updater(p), updatedAt: after.updatedAt }));
   }
 
   function undo() {
     if (undoStack.length === 0) return;
-    const prev = undoStack[undoStack.length - 1];
+    const { before, after } = undoStack[undoStack.length - 1];
     setUndoStack((s) => s.slice(0, -1));
-    updatePatternById(prev.id, () => prev);
+    // Revert only what that edit changed; edits other members made since then stay
+    updatePatternById(before.id, (current) => merge3(after, before, current));
   }
 
   // ---- screen navigation ----
@@ -467,27 +527,24 @@ export function useAppStore() {
 
   function handleRemoteSnapshot(patternId: string, data: PatternJson) {
     const remote = canonicalFromJson(data);
-    const base = shareBaseFor(patternId);
+    const base = shareBasesRef.current[patternId];
+    setShareBase(patternId, remote);
     // Echo of this tab's own write: local state is already at least this new
-    if (data.writerId === CLIENT_ID) {
-      if (!base) shareBaseRef.current = { patternId, data: remote };
-      return;
-    }
-    shareBaseRef.current = { patternId, data: remote };
+    if (data.writerId === CLIENT_ID) return;
     const current = stateRef.current.patterns.find((p) => p.id === patternId);
-    if (!current || !base) {
+    if (!current) return;
+    if (!base) {
       applyRemoteSnapshotToPattern(patternId, data);
       return;
     }
     // Keep local edits that haven't been sent yet instead of rolling them back
-    const merged = merge3(base, canonicalFromPattern(current), remote);
-    applySyncedData(patternId, merged);
-    if (!sameData(merged, remote)) schedulePush(current);
+    const local = canonicalFromPattern(current);
+    const merged = merge3(base, local, remote);
+    if (!sameData(merged, local)) applySyncedData(patternId, merged);
   }
 
   function applySyncedData(patternId: string, data: SyncData) {
     const normalized = normalizePatternFromJson(data);
-    skipNextSharePushRef.current = true;
     setState((prev) => ({
       ...prev,
       patterns: prev.patterns.map((p) => {
@@ -501,7 +558,6 @@ export function useAppStore() {
 
   function applyRemoteSnapshotToPattern(patternId: string, data: PatternJson) {
     const normalized = normalizePatternFromJson(data);
-    skipNextSharePushRef.current = true;
     setState((prev) => ({
       ...prev,
       patterns: prev.patterns.map((p) => {
@@ -528,8 +584,16 @@ export function useAppStore() {
       pattern = { ...pattern, shareId };
     }
     try {
-      await pushPatternToFirestore(pattern);
-      shareBaseRef.current = { patternId: pattern.id, data: canonicalFromPattern(pattern) };
+      const base = shareBasesRef.current[pattern.id];
+      if (base) {
+        // Already shared: merge onto the server copy instead of replacing others' edits
+        setShareBase(pattern.id, await pushMergedPatternToFirestore(pattern, base));
+      } else if (!activePattern.shareId) {
+        // First share: the document is new, so writing it whole is safe.
+        // (Already shared but no known server version: the listener will sync it instead.)
+        await pushPatternToFirestore(pattern);
+        setShareBase(pattern.id, canonicalFromPattern(pattern));
+      }
       ensureShareListener(pattern);
       const shareUrl = buildShareUrl(pattern.shareId!);
       if (navigator.clipboard?.writeText) {
@@ -554,6 +618,7 @@ export function useAppStore() {
         alert("共有データが見つかりませんでした。");
         return;
       }
+      setShareBase(activePattern.id, canonicalFromJson(data as PatternJson));
       applyRemoteSnapshotToPattern(activePattern.id, data as PatternJson);
     } catch (e) {
       console.error(e);
@@ -599,6 +664,7 @@ export function useAppStore() {
         const pattern = createPattern(normalized.name || "共有パターン", 1, 1);
         applyNormalizedDataToPattern(pattern, normalized);
         pattern.shareId = shareId;
+        setShareBase(pattern.id, canonicalFromJson(data as PatternJson));
         setState((prev) => ({ ...prev, patterns: [...prev.patterns, pattern], activeId: pattern.id }));
         ensureShareListener(pattern);
         setIsSharedSession(true);
