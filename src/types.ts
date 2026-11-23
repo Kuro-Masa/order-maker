@@ -29,6 +29,17 @@ export interface SpecialMarker {
   side: "left" | "right";
 }
 
+// Floor plan or venue drawing shown under the grid. The image itself lives in
+// backgrounds/{imageId} (and a local cache); the layout only keeps where it sits.
+export interface BackgroundData {
+  imageId: string;
+  aspect: number; // height / width of the image
+  x: number; // left edge, px from the grid's center axis
+  y: number; // top edge, px from the top of the first row
+  width: number; // px at 100% zoom
+  opacity: number; // 0..1
+}
+
 export interface Pattern {
   id: string;
   name: string;
@@ -42,6 +53,7 @@ export interface Pattern {
   updatedAt?: number;
   specialMarkers?: SpecialMarker[];
   curve?: number; // 0 = straight, 100 = semicircle
+  background?: BackgroundData | null;
 }
 
 export interface Member {
@@ -57,7 +69,7 @@ export interface AppState {
   members: Member[];
 }
 
-export type Mode = "edit" | "swap" | "paint" | "line";
+export type Mode = "edit" | "swap" | "paint" | "line" | "background";
 
 export interface Selected {
   r: number;
@@ -88,6 +100,7 @@ export interface PatternJson {
   }[];
   specialMarkers?: { id?: string; label: string; side: string }[];
   curve?: number;
+  background?: Partial<BackgroundData> | null;
   updatedAt?: unknown;
   writerId?: string;
 }
@@ -101,4 +114,5 @@ export interface NormalizedPatternData {
   lines: LineData[];
   specialMarkers: SpecialMarker[];
   curve: number;
+  background: BackgroundData | null;
 }

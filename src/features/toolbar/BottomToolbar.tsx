@@ -8,9 +8,10 @@ import { RowSettingsContent } from "../settings/RowLayoutSettings";
 import { LineItemRow } from "../settings/LineSettings";
 import { PartColorSettingsContent } from "../settings/PartColorSettings";
 import { MemberPool } from "../members/MemberPool";
+import { BackgroundPanel } from "../background/BackgroundPanel";
 import type { Mode } from "../../types";
 
-type ToolbarMode = "rows" | "names" | "sort" | "paint" | "lines" | "share";
+type ToolbarMode = "rows" | "names" | "sort" | "paint" | "lines" | "background" | "share";
 
 const STORE_MODE: Record<ToolbarMode, Mode> = {
   rows: "edit",
@@ -18,6 +19,7 @@ const STORE_MODE: Record<ToolbarMode, Mode> = {
   sort: "swap",
   paint: "paint",
   lines: "line",
+  background: "background",
   share: "edit",
 };
 
@@ -70,6 +72,15 @@ function VerticalLinesIcon() {
   );
 }
 
+function BackgroundIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="2" strokeWidth="1.8" />
+      <path d="M3 16l5-5 4 4 3-3 6 6" strokeWidth="1.8" strokeLinejoin="round" />
+      <circle cx="16" cy="9" r="1.6" strokeWidth="1.6" />
+    </svg>
+  );
+}
 
 function ShareOutputIcon() {
   return (
@@ -173,6 +184,7 @@ const BUTTONS: { id: ToolbarMode; icon: React.ReactNode; label: string }[] = [
   { id: "sort",  icon: <SortArrowsIcon />,  label: "入れ替え"   },
   { id: "paint", icon: <PaletteIcon />,     label: "色塗り"     },
   { id: "lines", icon: <VerticalLinesIcon />, label: "縦線"     },
+  { id: "background", icon: <BackgroundIcon />, label: "背景" },
   { id: "share", icon: <ShareOutputIcon />, label: "出力"      },
 ];
 
@@ -234,6 +246,7 @@ export function BottomToolbar() {
           {toolbarMode === "sort"  && <SortPanel />}
           {toolbarMode === "paint" && <PaintPanel />}
           {toolbarMode === "lines" && <LinesPanel />}
+          {toolbarMode === "background" && <BackgroundPanel />}
           {toolbarMode === "share" && <SharePanel />}
         </div>
       )}

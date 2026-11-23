@@ -18,6 +18,17 @@ service cloud.firestore {
       }
     }
 
+    // Background images, stored once by content hash. Write-once and size-capped;
+    // readable by anyone who has a layout that points at them.
+    match /backgrounds/{imageId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['data', 'createdAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 900000
+        && request.resource.data.data.matches('data:image/jpeg;base64,.*');
+      allow update, delete: if false;
+    }
+
     // A signed-in user's own layouts (and their history): only that user
     match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;

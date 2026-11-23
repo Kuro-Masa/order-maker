@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Unsubscribe } from "firebase/firestore";
 import { DEFAULT_COL_COUNT, PALETTE, PART_SCHEMES } from "../constants";
-import type { Mode, Pattern, PatternJson, Selected } from "../types";
+import type { BackgroundData, Mode, Pattern, PatternJson, Selected } from "../types";
 import { loadShareBases, loadState, saveShareBases, saveState } from "./persistence";
 import {
   createDefaultPattern,
@@ -32,6 +32,7 @@ import { canonicalFromJson, canonicalFromPattern, merge3, sameData, type SyncDat
 import { signInWithGoogle, signOutUser, watchAuth, type AppUser } from "../features/auth/auth";
 import { useCloudSync } from "../features/cloud/useCloudSync";
 import { recordHistory } from "../features/history/history";
+import { ensureImageUploaded } from "../features/background/backgroundImage";
 
 export function useAppStore() {
   const [state, setState] = useState(() => loadState());
@@ -71,6 +72,15 @@ export function useAppStore() {
   );
 
   const { cloudStatus, detachCloud } = useCloudSync(user, state, setState);
+
+  // Background images go to the server only once a layout leaves this device (shared or saved to an account)
+  useEffect(() => {
+    for (const p of state.patterns) {
+      if (p.background && (p.shareId || user)) {
+        ensureImageUploaded(p.background.imageId).catch((e) => console.error(e));
+      }
+    }
+  }, [state.patterns, user]);
 
   async function signIn() {
     try {
@@ -534,6 +544,14 @@ export function useAppStore() {
     }));
   }
 
+  function setBackground(bg: BackgroundData | null) {
+    updateActivePattern((p) => ({ ...p, background: bg }));
+  }
+
+  function updateBackground(patch: Partial<BackgroundData>) {
+    updateActivePattern((p) => (p.background ? { ...p, background: { ...p.background, ...patch } } : p));
+  }
+
   function toggleSpecialMarker(id: string, label: string, side: "left" | "right") {
     updateActivePattern((p) => {
       const markers = p.specialMarkers ?? [];
@@ -868,6 +886,8 @@ export function useAppStore() {
     signOut,
     cloudStatus,
     restoreFromHistory,
+    setBackground,
+    updateBackground,
   };
 }
 

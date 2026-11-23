@@ -1,4 +1,5 @@
-import { useState, useRef, useLayoutEffect, type MouseEvent } from "react";
+import { useState, useRef, useLayoutEffect, type MouseEvent, type PointerEvent } from "react";
+import { BackgroundLayer } from "../background/BackgroundLayer";
 import { rowShiftPx, showsCenterLine, totalCellCount } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
@@ -8,7 +9,9 @@ import { arcBandPath, curveExtraDrop, curveRadii, radialFrame, radialPosAt, rise
 import { rowOnRiser } from "../../state/patternHelpers";
 
 export function GridView() {
-  const { activePattern, mode, addLine, updateLinePos, toolbarMode, selectedEditRow, setSelectedEditRow, addRow } = useApp();
+  const { activePattern, mode, addLine, updateLinePos, toolbarMode, selectedEditRow, setSelectedEditRow, addRow, updateBackground } = useApp();
+  const [bgDrag, setBgDrag] = useState<{ startX: number; startY: number; dx: number; dy: number } | null>(null);
+  const bgMode = mode === "background" && !!activePattern.background;
   const [zoom, setZoom] = useState(1);
   const wrapRef = useRef<HTMLElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -57,6 +60,25 @@ export function GridView() {
   }
 
 
+  // In background mode, dragging anywhere on the grid moves the background (committed on release)
+  function handleBgPointerDown(e: PointerEvent<HTMLElement>) {
+    if (!bgMode) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setBgDrag({ startX: e.clientX, startY: e.clientY, dx: 0, dy: 0 });
+  }
+  function handleBgPointerMove(e: PointerEvent<HTMLElement>) {
+    if (!bgDrag) return;
+    setBgDrag({ ...bgDrag, dx: (e.clientX - bgDrag.startX) / zoom, dy: (e.clientY - bgDrag.startY) / zoom });
+  }
+  function handleBgPointerUp() {
+    if (!bgDrag) return;
+    const bg = activePattern.background;
+    if (bg && (bgDrag.dx || bgDrag.dy)) {
+      updateBackground({ x: Math.round(bg.x + bgDrag.dx), y: Math.round(bg.y + bgDrag.dy) });
+    }
+    setBgDrag(null);
+  }
+
   const lastRow = activePattern.rows[activePattern.rows.length - 1];
   const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
 
@@ -66,6 +88,14 @@ export function GridView() {
     (max, row) => Math.max(max, Math.abs(rowShiftPx(row))),
     0
   );
+
+  // Grow the grid area so the whole background stays visible and scrollable
+  const bg = activePattern.background;
+  const bgLive = bg && bgDrag ? { ...bg, x: bg.x + bgDrag.dx, y: bg.y + bgDrag.dy } : bg;
+  const bgPadTop = bgLive ? Math.max(0, Math.ceil(-bgLive.y) - 16) : 0;
+  const bgSpan = bgLive ? Math.ceil(2 * Math.max(-bgLive.x, bgLive.x + bgLive.width)) + 24 : 0;
+  const bgMinHeight =
+    bgLive && layout.lines ? Math.ceil(layout.lines.top + bgLive.y + bgLive.width * bgLive.aspect) + 16 : 0;
 
   const zoomStep = 0.1;
   const minZoom = 0.3;
@@ -108,16 +138,29 @@ export function GridView() {
         <span className="gridUpdatedAt">{formatUpdatedAt(activePattern.updatedAt)}</span>
       )}
     </div>
-    <section className="gridWrap" ref={wrapRef}>
+    <section
+      className={"gridWrap" + (bgMode ? " gridWrapBgMode" : "")}
+      ref={wrapRef}
+      onPointerDown={handleBgPointerDown}
+      onPointerMove={handleBgPointerMove}
+      onPointerUp={handleBgPointerUp}
+      onPointerCancel={handleBgPointerUp}
+    >
       <div
         className="gridRows"
         ref={gridRef}
         style={{
           ...(zoom !== 1 ? { transform: `scale(${zoom})`, transformOrigin: "top center" } : {}),
           ...(maxShiftPx > 0 ? { paddingLeft: `${10 + maxShiftPx}px`, paddingRight: `${22 + maxShiftPx}px` } : {}),
+          ...(bgPadTop > 0 ? { paddingTop: 16 + bgPadTop } : {}),
+          ...(bgMinHeight > 0 ? { minHeight: bgMinHeight } : {}),
         }}
         onClick={handleGridClick}
       >
+        {bgSpan > 0 && <div aria-hidden style={{ width: bgSpan, height: 0, flex: "0 0 auto", order: 99 }} />}
+        {bgLive && layout.lines && (
+          <BackgroundLayer bg={bgLive} axis={layout.axis} top={layout.lines.top} active={bgMode} />
+        )}
         {activePattern.rows.map((row, r) => (
           <Row
             key={r}

@@ -1,6 +1,6 @@
 import { DEFAULT_COL_COUNT, DEFAULT_GAP_CELLS, PART_SCHEMES } from "../../constants";
 import { createRow, ensurePartSettings, makeLineId, segmentsTotal, showsCenterLine, showsConductor } from "../../state/patternHelpers";
-import type { NormalizedPatternData, Pattern, PatternJson } from "../../types";
+import type { BackgroundData, NormalizedPatternData, Pattern, PatternJson } from "../../types";
 
 export const MAX_LINE_ANGLE = 85;
 
@@ -17,6 +17,7 @@ export function buildPatternData(pattern: Pattern) {
     partSettings: ensurePartSettings(pattern),
     specialMarkers: pattern.specialMarkers ?? [],
     ...(pattern.curve ? { curve: pattern.curve } : {}),
+    ...(pattern.background ? { background: { ...pattern.background } } : {}),
     rows: pattern.rows.map((row) => ({
       segments: row.segments,
       gaps: row.gaps,
@@ -103,6 +104,20 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
     lines,
     specialMarkers,
     curve: typeof data.curve === "number" && Number.isFinite(data.curve) ? Math.min(100, Math.max(0, data.curve)) : 0,
+    background: normalizeBackground(data.background),
+  };
+}
+
+function normalizeBackground(b: PatternJson["background"]): BackgroundData | null {
+  if (!b || typeof b.imageId !== "string" || !b.imageId) return null;
+  const num = (v: unknown, fallback: number) => (typeof v === "number" && Number.isFinite(v) ? v : fallback);
+  return {
+    imageId: b.imageId,
+    aspect: Math.max(0.01, num(b.aspect, 1)),
+    x: num(b.x, -450),
+    y: num(b.y, 0),
+    width: Math.max(20, num(b.width, 900)),
+    opacity: Math.min(1, Math.max(0, num(b.opacity, 0.5))),
   };
 }
 
@@ -115,4 +130,5 @@ export function applyNormalizedDataToPattern(pattern: Pattern, normalized: Norma
   pattern.lines = normalized.lines;
   pattern.specialMarkers = normalized.specialMarkers;
   pattern.curve = normalized.curve;
+  pattern.background = normalized.background;
 }

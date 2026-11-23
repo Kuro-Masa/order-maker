@@ -2900,3 +2900,58 @@ svg {
   .historyThumb { width: 80px; }
   .historyRestoreBtn { width: 100%; }
 }
+
+/* ── Background (venue drawing) ── */
+
+.gridBackground {
+  position: absolute;
+  z-index: -2;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gridBackgroundActive {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+.gridWrapBgMode {
+  cursor: move;
+  touch-action: none;
+}
+
+.gridWrapBgMode .gridRows {
+  pointer-events: none;
+}
+
+.bgSliderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.bgSliderRow input[type="range"] { flex: 1; min-width: 0; }
+.bgSliderValue {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 52px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.bgButtons,
+.bgPdfPageRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.bgPdfPageRow select {
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  padding: 0 8px;
+  font-family: inherit;
+}
