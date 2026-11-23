@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useApp } from "../../state/AppStoreContext";
 import { importBackgroundFile, isPdf, pdfPageCount } from "./backgroundImage";
 import { useBackgroundImage } from "./BackgroundLayer";
+import { CurveControl } from "../settings/RowLayoutSettings";
 
 const DEFAULT_WIDTH = 900;
 
@@ -144,6 +145,9 @@ export function BackgroundPanel() {
               onChange={(e) => updateBackground({ opacity: Number(e.target.value) / 100 })}
             />
             <span className="bgSliderValue">{Math.round(bg.opacity * 100)}%</span>
+          </div>
+          <div className="bgCurve">
+            <CurveControl />
           </div>
           <div className="bgButtons">
             <button type="button" className="btn" disabled={busy} onClick={() => fileRef.current?.click()}>
