@@ -13,6 +13,7 @@ import {
 import { getGapPx, maxRowWidthPx, rowContentWidthPx, rowOnRiser, rowShiftPx, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 import { downloadBlob, fileBaseName } from "./download";
+import { cellCenterOffsets, curveExtraDrop, curvePoint, curveRadii, riserHalfAngles, RISER_BAND_HALF } from "../../state/curve";
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -127,13 +128,29 @@ export function exportImage(pattern: Pattern) {
     drawnMaxX = Math.max(drawnMaxX, centerX + totalMarkW / 2 + 2);
   }
 
+  // Curved rows: risers become arc bands around a common center
+  const radii = curveRadii(pattern);
+  const riserAngles = radii ? riserHalfAngles(pattern, radii) : null;
+  const extraDrop = curveExtraDrop(pattern);
+  const axisX = padding + maxRowWidth / 2;
+  const rowCy = (r: number) => padding + titleH + r * (cellH + gapY) + cellH / 2;
+  if (radii && riserAngles) {
+    pattern.rows.forEach((row, r) => {
+      if (!rowOnRiser(row)) return;
+      const outer = radii[r] + RISER_BAND_HALF;
+      const reach = riserAngles[r] >= Math.PI / 2 ? outer : outer * Math.sin(riserAngles[r]);
+      drawnMinX = Math.min(drawnMinX, axisX - reach);
+      drawnMaxX = Math.max(drawnMaxX, axisX + reach);
+    });
+  }
+
   // If content bleeds left of padding, shift all drawing right by xOffset
   const xOffset = Math.max(0, padding - drawnMinX);
   const dpr = 2;
   const logicalW = drawnMaxX + xOffset + padding;
   const logicalH =
     padding * 2 + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY +
-    (withConductor ? markGapY + markH : 0);
+    (withConductor ? markGapY + markH : 0) + extraDrop;
 
   const canvas = document.createElement("canvas");
   canvas.width = logicalW * dpr;
@@ -156,6 +173,25 @@ export function exportImage(pattern: Pattern) {
   // Draw each riser row individually to match the grid view (supports custom riserWidth per row)
   pattern.rows.forEach((row, r) => {
     if (!rowOnRiser(row)) return;
+    if (radii && riserAngles) {
+      const R = radii[r];
+      const cy = rowCy(r) + R;
+      const half = riserAngles[r];
+      const inner = Math.max(1, R - RISER_BAND_HALF);
+      const outer = R + RISER_BAND_HALF;
+      // canvas angles start at +x; "up" is -PI/2
+      ctx.beginPath();
+      ctx.arc(axisX, cy, outer, -Math.PI / 2 - half, -Math.PI / 2 + half);
+      ctx.arc(axisX, cy, inner, -Math.PI / 2 + half, -Math.PI / 2 - half, true);
+      ctx.closePath();
+      ctx.fillStyle = RISER_COLOR;
+      ctx.strokeStyle = RISER_BORDER;
+      ctx.lineWidth = 1;
+      ctx.lineJoin = "round";
+      ctx.fill();
+      ctx.stroke();
+      return;
+    }
     const rTop = padding + titleH + r * (cellH + gapY) - RISER_PAD;
     const rBottom = padding + titleH + r * (cellH + gapY) + cellH + RISER_PAD;
     let rLeft = minLeft - RISER_PAD;
@@ -173,6 +209,27 @@ export function exportImage(pattern: Pattern) {
   });
 
   pattern.rows.forEach((row, r) => {
+    if (!radii) return;
+    const R = radii[r];
+    cellCenterOffsets(row).forEach((sx, i) => {
+      const cellData = row.cells[i];
+      const { dx, dy, angle } = curvePoint(sx, R);
+      ctx.save();
+      ctx.translate(axisX + sx + dx, rowCy(r) + dy);
+      ctx.rotate(angle);
+      ctx.fillStyle = cellData.color || "#ffffff";
+      ctx.strokeStyle = "#333844";
+      ctx.lineWidth = 2;
+      roundRect(ctx, -cellW / 2, -cellH / 2, cellW, cellH, 10);
+      ctx.fill();
+      ctx.stroke();
+      drawFittedText(ctx, cellData.name || "", 0, 0, cellW - 8, cellH - 4);
+      ctx.restore();
+    });
+  });
+
+  pattern.rows.forEach((row, r) => {
+    if (radii) return;
     const y = padding + titleH + r * (cellH + gapY);
     const baseX = padding + (maxRowWidth - rowWidths[r]) / 2 + rowShiftPx(pattern.rows[r]);
     let x = baseX;
@@ -236,7 +293,7 @@ export function exportImage(pattern: Pattern) {
 
   if (frontRowMarkers.length > 0) {
     const markY =
-      padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY + markGapY;
+      padding + titleH + pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY + markGapY + extraDrop;
     const lastRow = pattern.rows[pattern.rows.length - 1];
     const centerX = padding + maxRowWidth / 2 + (lastRow ? rowShiftPx(lastRow) : 0);
     const markCy = markY + markH / 2;

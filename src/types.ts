@@ -40,6 +40,7 @@ export interface Pattern {
   members?: Member[];
   updatedAt?: number;
   specialMarkers?: SpecialMarker[];
+  curve?: number; // 0 = straight, 100 = semicircle
 }
 
 export interface Member {
@@ -85,6 +86,7 @@ export interface PatternJson {
     cells?: { name?: string; color?: string | null }[];
   }[];
   specialMarkers?: { id?: string; label: string; side: string }[];
+  curve?: number;
   updatedAt?: unknown;
   writerId?: string;
 }
@@ -97,4 +99,5 @@ export interface NormalizedPatternData {
   showCenterLine: boolean;
   lines: LineData[];
   specialMarkers: SpecialMarker[];
+  curve: number;
 }

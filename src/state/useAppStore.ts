@@ -378,6 +378,10 @@ export function useAppStore() {
     });
   }
 
+  function setCurve(curve: number) {
+    updateActivePattern((p) => ({ ...p, curve: Math.min(100, Math.max(0, Math.round(curve))) }));
+  }
+
   // ---- part color settings ----
 
   function setPartScheme(scheme: string) {
@@ -729,6 +733,7 @@ export function useAppStore() {
     toggleRowOnRiser,
     setRiserWidth,
     setRowShift,
+    setCurve,
     setPartScheme,
     clearAllNames,
     toggleCenterLine,

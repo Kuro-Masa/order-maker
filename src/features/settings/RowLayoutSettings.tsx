@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { RowsAccordionIcon, TrashIcon } from "../../icons";
 import { rowOnRiser, totalCellCount } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
+import { curvePercent } from "../../state/curve";
 import type { RowData } from "../../types";
 import { Accordion } from "./Accordion";
 
@@ -210,8 +211,9 @@ function RowEditorPanel({
 export function RowSettingsContent() {
   const {
     activePattern, updateRowSpec, removeRow, toggleRowOnRiser,
-    setRiserWidth, setRowShift, selectedEditRow, setSelectedEditRow, addRow,
+    setRiserWidth, setRowShift, selectedEditRow, setSelectedEditRow, addRow, setCurve,
   } = useApp();
+  const curve = curvePercent(activePattern);
   const rows = activePattern.rows;
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -226,6 +228,23 @@ export function RowSettingsContent() {
   return (
     <div className="rowsEditor">
       <div className="rowsTotalCount">合計 <strong>{total}</strong> マス</div>
+      <div className="curveControl">
+        <div className="curveControlHeader">
+          <span>並びのカーブ</span>
+          <span className="curveValue">{curve === 0 ? "まっすぐ" : curve === 100 ? "半円" : `${curve}%`}</span>
+        </div>
+        <input
+          type="range"
+          className="curveSlider"
+          min={0}
+          max={100}
+          step={5}
+          value={curve}
+          aria-label="並びのカーブ(0%でまっすぐ、100%で半円)"
+          onChange={(e) => setCurve(Number(e.target.value))}
+        />
+        <div className="curveScale"><span>まっすぐ</span><span>半円</span></div>
+      </div>
       {rows.map((row, r) => {
         const rowNum = rows.length - r;
         const isSelected = selectedEditRow === r;

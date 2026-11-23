@@ -3,16 +3,25 @@ import { getGapPx, rowShiftPx } from "../../state/patternHelpers";
 import type { RowData } from "../../types";
 import { useApp } from "../../state/AppStoreContext";
 import { Cell } from "./Cell";
+import { cellCenterOffsets, curvePoint } from "../../state/curve";
 
 export function Row({
   row,
   r,
   cellsWrapRef,
+  radius,
 }: {
   row: RowData;
   r: number;
   cellsWrapRef: (el: HTMLDivElement | null) => void;
+  radius?: number;
 }) {
+  const offsets = radius ? cellCenterOffsets(row) : null;
+  function curveTransform(idx: number): string | undefined {
+    if (!offsets || !radius) return undefined;
+    const { dx, dy, angle } = curvePoint(offsets[idx], radius);
+    return `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) rotate(${angle.toFixed(4)}rad)`;
+  }
   const { toolbarMode, addCellToRow, selectedEditRow, setSelectedEditRow } = useApp();
   const showAddBtns = toolbarMode === "rows";
   const isRowsMode = toolbarMode === "rows";
@@ -37,7 +46,7 @@ export function Row({
               })()}
             {Array.from({ length: segLen }).map(() => {
               const idx = cellIdx++;
-              return <Cell key={idx} row={row} r={r} c={idx} />;
+              return <Cell key={idx} row={row} r={r} c={idx} curveTransform={curveTransform(idx)} />;
             })}
           </Fragment>
         ))}

@@ -3,7 +3,7 @@ import { CELL_MAX_LENGTH, CELL_TEXT_COLOR } from "../../constants";
 import { useApp } from "../../state/AppStoreContext";
 import type { RowData } from "../../types";
 
-export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
+export function Cell({ row, r, c, curveTransform }: { row: RowData; r: number; c: number; curveTransform?: string }) {
   const { mode, selected, setCellName, onCellSwapClick, paintCell, currentColor, removeMember, toolbarMode } = useApp();
   const rowsMode = toolbarMode === "rows";
   const cellData = row.cells[c];
@@ -37,6 +37,7 @@ export function Cell({ row, r, c }: { row: RowData; r: number; c: number }) {
     style.background = cellData.color;
     style.color = CELL_TEXT_COLOR;
   }
+  if (curveTransform) style.transform = curveTransform;
 
   const editable = mode === "edit" && !rowsMode;
 

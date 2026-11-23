@@ -4,6 +4,8 @@ import { useApp } from "../../state/AppStoreContext";
 import { Row } from "./Row";
 import { GuideLine } from "./GuideLine";
 import { useGridLayout } from "./useGridLayout";
+import { arcBandPath, curveExtraDrop, curveRadii, riserHalfAngles, RISER_BAND_HALF } from "../../state/curve";
+import { rowOnRiser } from "../../state/patternHelpers";
 
 export function GridView() {
   const { activePattern, mode, addLine, updateLinePos, toolbarMode, setSelectedEditRow, addRow } = useApp();
@@ -37,6 +39,10 @@ export function GridView() {
 
     addLine(clickX - center);
   }
+
+  const radii = curveRadii(activePattern);
+  const extraDrop = curveExtraDrop(activePattern);
+  const riserAngles = radii ? riserHalfAngles(activePattern, radii) : null;
 
   const lastRow = activePattern.rows[activePattern.rows.length - 1];
   const lastShift = lastRow ? rowShiftPx(lastRow) : 0;
@@ -107,8 +113,11 @@ export function GridView() {
             cellsWrapRef={(el) => {
               cellsWrapRefs.current[r] = el;
             }}
+            radius={radii?.[r]}
           />
         ))}
+
+        {extraDrop > 0 && <div aria-hidden style={{ height: extraDrop, flex: "0 0 auto" }} />}
 
         {toolbarMode === "rows" && (
           <button
@@ -144,7 +153,34 @@ export function GridView() {
             ))}
         </div>
 
-        {layout.risers.map((rect, i) => (
+        {radii && riserAngles && layout.rowCenters.length === activePattern.rows.length && (
+          <svg
+            className={"riserArcs" + (toolbarMode === "rows" ? " riserSelectable" : "")}
+            width={1}
+            height={1}
+            aria-hidden
+          >
+            {activePattern.rows.map((row, r) => {
+              if (!rowOnRiser(row)) return null;
+              const R = radii[r];
+              const cy = layout.rowCenters[r] + R;
+              // stroke (width 6) rounds the corners; shrink the band so the outline matches
+              const inner = Math.max(1, R - RISER_BAND_HALF + 3);
+              const outer = R + RISER_BAND_HALF - 3;
+              const half = Math.max(0.001, riserAngles[r] - 3 / R);
+              return (
+                <path
+                  key={r}
+                  className="riserArc"
+                  d={arcBandPath(layout.axis, cy, inner, outer, half)}
+                  onClick={toolbarMode === "rows" ? () => setSelectedEditRow(r) : undefined}
+                />
+              );
+            })}
+          </svg>
+        )}
+
+        {!radii && layout.risers.map((rect, i) => (
           <div
             key={i}
             className={"riserBg" + (toolbarMode === "rows" ? " riserSelectable" : "")}

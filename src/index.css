@@ -511,6 +511,24 @@ svg {
 :root[data-theme="dark"] .riserBg { background: #4a3c28; }
 :root[data-theme="light"] .riserBg { background: #d9c7a8; }
 
+.riserArcs {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: -1;
+}
+.riserArc { fill: #d9c7a8; stroke: #d9c7a8; stroke-width: 6; stroke-linejoin: round; }
+@media (prefers-color-scheme: dark) {
+  .riserArc { fill: #4a3c28; stroke: #4a3c28; }
+}
+:root[data-theme="dark"] .riserArc { fill: #4a3c28; stroke: #4a3c28; }
+:root[data-theme="light"] .riserArc { fill: #d9c7a8; stroke: #d9c7a8; }
+.riserArcs.riserSelectable { z-index: 0; }
+.riserArcs.riserSelectable .riserArc { pointer-events: all; cursor: pointer; transition: filter 0.12s; }
+.riserArcs.riserSelectable .riserArc:hover { filter: brightness(0.92); }
+
 .guideLine {
   position: absolute;
   z-index: 2;
@@ -2432,6 +2450,34 @@ svg {
   font-size: 0.8rem;
   color: var(--muted);
   padding: 2px 0 6px;
+}
+
+.curveControl {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px 6px;
+  margin-bottom: 8px;
+}
+.curveControlHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.curveValue {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.curveSlider {
+  width: 100%;
+  margin: 6px 0 2px;
+  accent-color: var(--accent);
+}
+.curveScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 .rowsTotalCount strong {

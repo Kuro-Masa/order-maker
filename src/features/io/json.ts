@@ -10,6 +10,7 @@ export function buildPatternData(pattern: Pattern) {
     lines: pattern.lines || [],
     partSettings: ensurePartSettings(pattern),
     specialMarkers: pattern.specialMarkers ?? [],
+    ...(pattern.curve ? { curve: pattern.curve } : {}),
     rows: pattern.rows.map((row) => ({
       segments: row.segments,
       gaps: row.gaps,
@@ -94,6 +95,7 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
     showCenterLine: !!data.showCenterLine,
     lines,
     specialMarkers,
+    curve: typeof data.curve === "number" && Number.isFinite(data.curve) ? Math.min(100, Math.max(0, data.curve)) : 0,
   };
 }
 
@@ -105,4 +107,5 @@ export function applyNormalizedDataToPattern(pattern: Pattern, normalized: Norma
   pattern.showCenterLine = normalized.showCenterLine;
   pattern.lines = normalized.lines;
   pattern.specialMarkers = normalized.specialMarkers;
+  pattern.curve = normalized.curve;
 }

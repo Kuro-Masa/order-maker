@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { CELL_W, GAP_X, RISER_PAD } from "../../constants";
-import { rowOnRiser } from "../../state/patternHelpers";
+import { rowOnRiser, rowShiftPx } from "../../state/patternHelpers";
 import type { Pattern } from "../../types";
 
 export interface RiserRect {
@@ -20,9 +20,11 @@ export interface LinesLayout {
 export interface GridLayout {
   risers: RiserRect[];
   lines: LinesLayout | null;
+  axis: number; // x of the unshifted center axis
+  rowCenters: number[]; // y of each row's center
 }
 
-const EMPTY_LAYOUT: GridLayout = { risers: [], lines: null };
+const EMPTY_LAYOUT: GridLayout = { risers: [], lines: null, axis: 0, rowCenters: [] };
 
 export function useGridLayout(
   gridRef: RefObject<HTMLDivElement | null>,
@@ -95,7 +97,13 @@ export function useGridLayout(
     const top = (firstRect.top - gridRect.top) / s;
     const bottom = (lastWrapRect.bottom - gridRect.top) / s;
 
-    commitLayout({ risers, lines: { center, top, bottom } });
+    const axis = center - rowShiftPx(pattern.rows[pattern.rows.length - 1]);
+    const rowCenters = wraps.map((w) => {
+      const rect = w.getBoundingClientRect();
+      return ((rect.top + rect.bottom) / 2 - gridRect.top) / s;
+    });
+
+    commitLayout({ risers, lines: { center, top, bottom }, axis, rowCenters });
   });
 
   return layout;
