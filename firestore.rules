@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Shared layouts: anyone with the link can read and edit (unchanged behavior)
+    match /patterns/{shareId} {
+      allow read, write: if true;
+
+      // Edit history of a shared layout. Entries name their editor: signed-in users can only
+      // write entries under their own uid; guests can only write uid-less entries.
+      match /history/{entryId} {
+        allow read: if true;
+        allow create, update: if
+          (request.auth == null && request.resource.data.uid == null) ||
+          (request.auth != null && request.resource.data.uid == request.auth.uid);
+        allow delete: if false;
+      }
+    }
+
+    // A signed-in user's own layouts (and their history): only that user
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

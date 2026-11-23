@@ -18,13 +18,14 @@ export function PrivacyModal({ onClose }: { onClose: () => void }) {
           <p>narabi（以下「本サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。</p>
 
           <h3>収集する情報</h3>
-          <p>本サービスは、ユーザーが「共有リンク」機能を使用した場合に、作成した並び順データ（メンバー名・パート・配置）をGoogleのFirebase Firestoreに保存します。氏名・メールアドレス・位置情報などの個人情報は収集しません。</p>
+          <p>本サービスは、ユーザーが「共有リンク」機能を使用した場合に、作成した並び順データ（メンバー名・パート・配置）とその編集履歴をGoogleのFirebase Firestoreに保存します。</p>
+          <p>Googleアカウントでログインした場合は、上記に加えて、Googleアカウントの表示名・メールアドレス・プロフィール画像、作成したレイアウトとその編集履歴を保存します。表示名は、共有したレイアウトの編集履歴に編集者名として表示されます。ログインしない場合、氏名・メールアドレスなどの個人情報は収集しません。位置情報は収集しません。</p>
 
           <h3>利用目的</h3>
-          <p>保存したデータは、共有リンクを通じた閲覧・同期のためのみに使用します。第三者への提供や広告目的での利用は行いません。</p>
+          <p>保存したデータは、共有リンクを通じた閲覧・同期、ログインしたユーザーの端末間でのレイアウト同期、編集履歴の表示と復元のためのみに使用します。第三者への提供や広告目的での利用は行いません。</p>
 
           <h3>第三者サービス</h3>
-          <p>本サービスはGoogle Firebase（Firestore）を使用しています。Googleのプライバシーポリシーについては <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">こちら</a> をご確認ください。</p>
+          <p>本サービスはGoogle Firebase（Firestore・Authentication）を使用しています。Googleのプライバシーポリシーについては <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">こちら</a> をご確認ください。</p>
 
           <h3>データの削除</h3>
           <p>共有リンクの削除やデータに関するご要望は、下記お問い合わせ先までご連絡ください。</p>
@@ -36,7 +37,7 @@ export function PrivacyModal({ onClose }: { onClose: () => void }) {
             </a>
           </p>
 
-          <p className="privacyModalDate">制定日：2026年8月29日</p>
+          <p className="privacyModalDate">制定日：2026年8月29日<br />改定日：2026年11月23日</p>
         </div>
       </div>
     </div>,

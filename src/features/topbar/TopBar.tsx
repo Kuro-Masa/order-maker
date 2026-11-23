@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "../../state/AppStoreContext";
 import type { Pattern } from "../../types";
 import { PrivacyModal } from "../../screens/PrivacyModal";
+import { AccountPanel } from "../auth/AccountPanel";
+import { HistoryModal } from "../history/HistoryModal";
 
 function PatternNameInput() {
   const { activePattern, renamePattern } = useApp();
@@ -155,7 +157,8 @@ function EditSidebarDrawer({
             <p className="editSidebarEmpty">レイアウトがありません</p>
           )}
         </nav>
-        <div className="sidebarFooter">
+        <AccountPanel />
+        <div className="sidebarFooter sidebarFooterAfterAccount">
           <button type="button" className="sidebarFooterLink" onClick={() => setPrivacyOpen(true)}>
             プライバシーポリシー
           </button>
@@ -166,6 +169,16 @@ function EditSidebarDrawer({
       </div>
       {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
     </>
+  );
+}
+
+function HistoryIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M12 7v5l3 2" />
+    </svg>
   );
 }
 
@@ -181,6 +194,7 @@ function ShareIcon() {
 
 export function TopBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { shareCurrentPattern, undo, canUndo } = useApp();
 
   return (
@@ -208,6 +222,15 @@ export function TopBar() {
           </button>
           <button
             type="button"
+            className="topBarUndoBtn"
+            aria-label="編集履歴"
+            title="編集履歴"
+            onClick={() => setHistoryOpen(true)}
+          >
+            <HistoryIcon />
+          </button>
+          <button
+            type="button"
             className="topBarShareBtn"
             aria-label="共有リンクをコピー"
             onClick={shareCurrentPattern}
@@ -218,6 +241,7 @@ export function TopBar() {
         </div>
       </section>
       <EditSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      {historyOpen && <HistoryModal onClose={() => setHistoryOpen(false)} />}
     </>
   );
 }

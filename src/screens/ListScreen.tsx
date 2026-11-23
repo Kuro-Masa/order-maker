@@ -3,6 +3,7 @@ import { TrashIcon, EditModeIcon, CopyIcon } from "../icons";
 import { useApp } from "../state/AppStoreContext";
 import type { Pattern } from "../types";
 import { PrivacyModal } from "./PrivacyModal";
+import { AccountPanel } from "../features/auth/AccountPanel";
 
 function GridIcon() {
   return (
@@ -16,7 +17,7 @@ function GridIcon() {
 }
 
 
-function PatternMiniPreview({ pattern }: { pattern: Pattern }) {
+export function PatternMiniPreview({ pattern }: { pattern: Pattern }) {
   const VW = 120;
   const VH = 84;
   const cellW = 9;
@@ -210,7 +211,8 @@ export function ListScreen() {
             マイレイアウト
           </div>
         </nav>
-        <div className="sidebarFooter">
+        <AccountPanel />
+        <div className="sidebarFooter sidebarFooterAfterAccount">
           <button type="button" className="sidebarFooterLink" onClick={() => setPrivacyOpen(true)}>
             プライバシーポリシー
           </button>

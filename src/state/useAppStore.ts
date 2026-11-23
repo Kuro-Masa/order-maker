@@ -29,6 +29,9 @@ import {
   pushPatternToFirestore,
 } from "../features/share/share";
 import { canonicalFromJson, canonicalFromPattern, merge3, sameData, type SyncData } from "../features/share/merge";
+import { signInWithGoogle, signOutUser, watchAuth, type AppUser } from "../features/auth/auth";
+import { useCloudSync } from "../features/cloud/useCloudSync";
+import { recordHistory } from "../features/history/history";
 
 export function useAppStore() {
   const [state, setState] = useState(() => loadState());
@@ -52,6 +55,72 @@ export function useAppStore() {
   const pushInFlightRef = useRef(new Set<string>());
   const pushAgainRef = useRef(new Set<string>());
   const prevPatternsRef = useRef<Pattern[] | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const userRef = useRef<AppUser | null>(null);
+  const historyTimersRef = useRef(new Map<string, number>());
+
+  useEffect(
+    () =>
+      watchAuth((u) => {
+        userRef.current = u;
+        setUser(u);
+        setAuthReady(true);
+      }),
+    []
+  );
+
+  const { cloudStatus, detachCloud } = useCloudSync(user, state, setState);
+
+  async function signIn() {
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      console.error(e);
+      alert("ログインに失敗しました: " + (e as Error).message);
+    }
+  }
+
+  async function signOut() {
+    if (!confirm("ログアウトしますか？\nレイアウトはアカウントに保存されたまま、この端末からは消えます。")) return;
+    flushHistory();
+    detachCloud();
+    await signOutUser();
+    const pattern = createDefaultPattern("パターン1");
+    setState({ patterns: [pattern], activeId: pattern.id, members: [] });
+    setUndoStack([]);
+    setScreen("list");
+    window.history.pushState(null, "", window.location.pathname);
+  }
+
+  // ---- edit history ----
+
+  function writeHistory(patternId: string) {
+    const latest = stateRef.current.patterns.find((p) => p.id === patternId);
+    if (!latest || !firebaseReady()) return;
+    recordHistory(latest, userRef.current?.uid ?? null).catch((e) => console.error(e));
+  }
+
+  function scheduleHistory(patternId: string) {
+    const timers = historyTimersRef.current;
+    const pending = timers.get(patternId);
+    if (pending) window.clearTimeout(pending);
+    timers.set(
+      patternId,
+      window.setTimeout(() => {
+        timers.delete(patternId);
+        writeHistory(patternId);
+      }, 3000)
+    );
+  }
+
+  function flushHistory() {
+    for (const [id, t] of historyTimersRef.current) {
+      window.clearTimeout(t);
+      writeHistory(id);
+    }
+    historyTimersRef.current.clear();
+  }
 
   useEffect(() => {
     stateRef.current = state;
@@ -145,17 +214,24 @@ export function useAppStore() {
   useEffect(() => {
     // Send pending edits right away when the app goes to the background or comes back online
     function onVisibility() {
-      if (document.visibilityState === "hidden") flushPendingPushes();
+      if (document.visibilityState === "hidden") {
+        flushPendingPushes();
+        flushHistory();
+      }
+    }
+    function onPageHide() {
+      flushPendingPushes();
+      flushHistory();
     }
     function onOnline() {
       for (const p of stateRef.current.patterns) if (p.shareId) schedulePush(p.id, 0);
     }
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("pagehide", flushPendingPushes);
+    window.addEventListener("pagehide", onPageHide);
     window.addEventListener("online", onOnline);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("pagehide", flushPendingPushes);
+      window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("online", onOnline);
       if (shareUnsubRef.current) shareUnsubRef.current();
       shareUnsubRef.current = null;
@@ -177,6 +253,17 @@ export function useAppStore() {
     const after = { ...updater(before), updatedAt: Date.now() };
     setUndoStack((prev) => [...prev.slice(-49), { before, after }]);
     updatePatternById(before.id, (p) => (p === before ? after : { ...updater(p), updatedAt: after.updatedAt }));
+    scheduleHistory(before.id);
+  }
+
+  function restoreFromHistory(data: SyncData) {
+    const normalized = normalizePatternFromJson(data);
+    updateActivePattern((p) => {
+      const next = { ...p };
+      applyNormalizedDataToPattern(next, normalized);
+      return next;
+    });
+    setSelected(null);
   }
 
   function undo() {
@@ -266,7 +353,7 @@ export function useAppStore() {
   function renamePattern(patternId: string, name: string) {
     const trimmed = name.trim();
     if (!trimmed) return;
-    updatePatternById(patternId, (p) => ({ ...p, name: trimmed }));
+    updatePatternById(patternId, (p) => ({ ...p, name: trimmed, updatedAt: Date.now() }));
   }
 
   function duplicatePattern(patternId: string) {
@@ -775,6 +862,12 @@ export function useAppStore() {
     toggleSpecialMarker,
     undo,
     canUndo: undoStack.length > 0,
+    user,
+    authReady,
+    signIn,
+    signOut,
+    cloudStatus,
+    restoreFromHistory,
   };
 }
 
