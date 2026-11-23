@@ -15,6 +15,7 @@ import {
 } from "./patternHelpers";
 import {
   applyNormalizedDataToPattern,
+  clampLineAngle,
   normalizePatternFromJson,
 } from "../features/io/json";
 import { exportImage as writeImage } from "../features/io/imageExport";
@@ -418,6 +419,18 @@ export function useAppStore() {
     }));
   }
 
+  function updateLineAngle(lineId: string, angle: number) {
+    const a = clampLineAngle(angle);
+    updateActivePattern((p) => ({
+      ...p,
+      lines: p.lines.map((l) => {
+        if (l.id !== lineId) return l;
+        const { angle: _old, ...rest } = l;
+        return a ? { ...rest, angle: a } : rest;
+      }),
+    }));
+  }
+
   function removeLine(lineId: string) {
     updateActivePattern((p) => ({ ...p, lines: p.lines.filter((l) => l.id !== lineId) }));
   }
@@ -740,6 +753,7 @@ export function useAppStore() {
     toggleConductor,
     addLine,
     updateLinePos,
+    updateLineAngle,
     removeLine,
     setCellName,
     onCellSwapClick,

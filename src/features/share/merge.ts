@@ -6,7 +6,7 @@ export type SyncData = ReturnType<typeof canonicalFromPattern>;
 // Comparable form of a pattern: line ids are regenerated on every load, so drop them
 export function canonicalFromPattern(pattern: Pattern) {
   const data = buildPatternData(pattern);
-  return { ...data, lines: data.lines.map((l) => ({ pos: l.pos })) };
+  return { ...data, lines: data.lines.map((l) => ({ pos: l.pos, ...(l.angle ? { angle: l.angle } : {}) })) };
 }
 
 export function canonicalFromJson(data: PatternJson): SyncData {

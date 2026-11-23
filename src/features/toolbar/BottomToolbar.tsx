@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ImageIcon, TrashIcon } from "../../icons";
+import { ImageIcon } from "../../icons";
 import { CELL_W, GAP_X } from "../../constants";
 import { segmentsTotal } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import type { Pattern } from "../../types";
 import { RowSettingsContent } from "../settings/RowLayoutSettings";
+import { LineItemRow } from "../settings/LineSettings";
 import { PartColorSettingsContent } from "../settings/PartColorSettings";
 import { MemberPool } from "../members/MemberPool";
 import type { Mode } from "../../types";
@@ -132,32 +133,17 @@ function PaintPanel() {
 }
 
 function LinesPanel() {
-  const { activePattern, addLine, updateLinePos, removeLine } = useApp();
+  const { activePattern, addLine } = useApp();
   return (
     <div className="panelContent">
-      <p className="panelHint">グリッド上の空いている場所をタップして縦線を追加。追加した線はドラッグで移動できます。</p>
+      <p className="panelHint">グリッド上の空いている場所をタップして縦線を追加。追加した線はドラッグで移動、角度は下のスライダーで変えられます(前側の端が支点)。</p>
       <button type="button" className="poolImportTrigger" onClick={() => addLine(bestLinePos(activePattern))}>
         ＋ 縦線を追加
       </button>
       {activePattern.lines.length > 0 && (
         <div className="linesList">
           {activePattern.lines.map((line) => (
-            <div className="lineItem" key={line.id}>
-              <span className="lineTypeLabel">縦線</span>
-              <input
-                type="number"
-                value={Math.round(line.pos)}
-                onChange={(e) => updateLinePos(line.id, parseFloat(e.target.value) || 0)}
-              />
-              <button
-                type="button"
-                className="btn remove"
-                aria-label="この線を削除"
-                onClick={() => removeLine(line.id)}
-              >
-                <TrashIcon />
-              </button>
-            </div>
+            <LineItemRow key={line.id} line={line} />
           ))}
         </div>
       )}

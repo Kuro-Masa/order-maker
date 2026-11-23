@@ -6,6 +6,7 @@ export function GuideLine({
   height,
   isCenterLine = false,
   pos = 0,
+  angle = 0,
   draggable = false,
   onDragEnd,
 }: {
@@ -14,6 +15,7 @@ export function GuideLine({
   height: number;
   isCenterLine?: boolean;
   pos?: number;
+  angle?: number;
   draggable?: boolean;
   onDragEnd?: (newPos: number) => void;
 }) {
@@ -56,7 +58,12 @@ export function GuideLine({
     <div
       ref={elRef}
       className={"guideLine guideLineV" + (isCenterLine ? " centerLine" : "") + (draggable ? " draggable" : "")}
-      style={{ left, top, height }}
+      style={{
+        left,
+        top,
+        height,
+        ...(angle ? { transform: `translateX(-50%) rotate(${angle}deg)`, transformOrigin: "50% 100%" } : {}),
+      }}
       onClick={(e) => e.stopPropagation()}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

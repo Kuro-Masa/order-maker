@@ -110,9 +110,12 @@ export function exportImage(pattern: Pattern) {
   // Lines (縦線) are drawn at linesCenter + line.pos
   const linesLastRowForBounds = pattern.rows[pattern.rows.length - 1];
   const linesCenterForBounds = padding + maxRowWidth / 2 + (linesLastRowForBounds ? rowShiftPx(linesLastRowForBounds) : 0);
+  const linesLengthForBounds = pattern.rows.length * cellH + Math.max(0, pattern.rows.length - 1) * gapY;
   (pattern.lines || []).forEach((line) => {
-    drawnMinX = Math.min(drawnMinX, linesCenterForBounds + line.pos - 1);
-    drawnMaxX = Math.max(drawnMaxX, linesCenterForBounds + line.pos + 1);
+    const x = linesCenterForBounds + line.pos;
+    const topX = x + linesLengthForBounds * Math.sin(((line.angle ?? 0) * Math.PI) / 180);
+    drawnMinX = Math.min(drawnMinX, x - 1, topX - 1);
+    drawnMaxX = Math.max(drawnMaxX, x + 1, topX + 1);
   });
 
   // Also check conductor/marker bounds
@@ -273,11 +276,14 @@ export function exportImage(pattern: Pattern) {
   }
 
   (pattern.lines || []).forEach((line) => {
+    // Tilted lines pivot on their front (bottom) end
     const x = linesCenter + line.pos;
+    const rad = ((line.angle ?? 0) * Math.PI) / 180;
+    const len = linesBottom - linesTop;
     ctx.strokeStyle = LINE_COLOR;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(x, linesTop);
+    ctx.moveTo(x + len * Math.sin(rad), linesBottom - len * Math.cos(rad));
     ctx.lineTo(x, linesBottom);
     ctx.stroke();
   });

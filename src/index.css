@@ -1231,8 +1231,31 @@ svg {
 
 .lineItem {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lineItemMain,
+.lineItemAngle {
+  display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.lineAngleSlider {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.lineItemAngle input.lineAngleInput[type="number"] {
+  flex: 0 0 64px;
+  width: 64px;
+}
+
+.lineAngleUnit {
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .lineItem .lineTypeLabel {

@@ -2,12 +2,18 @@ import { DEFAULT_COL_COUNT, DEFAULT_GAP_CELLS, PART_SCHEMES } from "../../consta
 import { createRow, ensurePartSettings, makeLineId, segmentsTotal, showsCenterLine, showsConductor } from "../../state/patternHelpers";
 import type { NormalizedPatternData, Pattern, PatternJson } from "../../types";
 
+export const MAX_LINE_ANGLE = 85;
+
+export function clampLineAngle(a: number): number {
+  return Number.isFinite(a) ? Math.min(MAX_LINE_ANGLE, Math.max(-MAX_LINE_ANGLE, a)) : 0;
+}
+
 export function buildPatternData(pattern: Pattern) {
   return {
     name: pattern.name,
     showConductor: showsConductor(pattern),
     showCenterLine: showsCenterLine(pattern),
-    lines: pattern.lines || [],
+    lines: (pattern.lines || []).map((l) => ({ id: l.id, pos: l.pos, ...(l.angle ? { angle: l.angle } : {}) })),
     partSettings: ensurePartSettings(pattern),
     specialMarkers: pattern.specialMarkers ?? [],
     ...(pattern.curve ? { curve: pattern.curve } : {}),
@@ -76,9 +82,10 @@ export function normalizePatternFromJson(data: PatternJson): NormalizedPatternDa
         .map((l) => {
           const pos = Number(l && l.pos);
           if (!Number.isFinite(pos)) return null;
-          return { id: makeLineId(), pos };
+          const angle = clampLineAngle(Number(l.angle));
+          return { id: makeLineId(), pos, ...(angle ? { angle } : {}) };
         })
-        .filter((l): l is { id: string; pos: number } => l !== null)
+        .filter((l): l is { id: string; pos: number; angle?: number } => l !== null)
     : [];
 
   const specialMarkers: import("../../types").SpecialMarker[] = Array.isArray(data.specialMarkers)

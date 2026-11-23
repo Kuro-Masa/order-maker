@@ -206,6 +206,7 @@ export function GridView() {
               top={layout.lines!.top}
               height={layout.lines!.bottom - layout.lines!.top}
               pos={line.pos}
+              angle={line.angle}
               draggable={mode === "line"}
               onDragEnd={(newPos) => updateLinePos(line.id, newPos)}
             />

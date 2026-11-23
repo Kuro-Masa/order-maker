@@ -15,6 +15,7 @@ export interface RowData {
 export interface LineData {
   id: string;
   pos: number;
+  angle?: number; // degrees, clockwise, pivoting on the front (conductor-side) end
 }
 
 export interface PartSettings {
@@ -74,7 +75,7 @@ export interface PatternJson {
   name?: string;
   showConductor?: boolean;
   showCenterLine?: boolean;
-  lines?: { pos: number }[];
+  lines?: { pos: number; angle?: number }[];
   partSettings?: { scheme?: string; counts?: Record<string, number> };
   rows?: {
     segments?: number[];

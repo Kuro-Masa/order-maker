@@ -2,6 +2,59 @@ import { LinesAccordionIcon, TrashIcon } from "../../icons";
 import { showsCenterLine } from "../../state/patternHelpers";
 import { useApp } from "../../state/AppStoreContext";
 import { Accordion } from "./Accordion";
+import { MAX_LINE_ANGLE } from "../io/json";
+import type { LineData } from "../../types";
+
+export function LineItemRow({ line }: { line: LineData }) {
+  const { updateLinePos, updateLineAngle, removeLine } = useApp();
+  const angle = Math.round(line.angle ?? 0);
+  return (
+    <div className="lineItem">
+      <div className="lineItemMain">
+        <span className="lineTypeLabel">縦線</span>
+        <input
+          type="number"
+          aria-label="線の位置"
+          value={Math.round(line.pos)}
+          onChange={(e) => updateLinePos(line.id, parseFloat(e.target.value) || 0)}
+        />
+        <button
+          type="button"
+          className="btn remove"
+          aria-label="この線を削除"
+          title="この線を削除"
+          onClick={() => removeLine(line.id)}
+        >
+          <TrashIcon />
+        </button>
+      </div>
+      <div className="lineItemAngle">
+        <span className="lineTypeLabel">角度</span>
+        <input
+          type="range"
+          className="lineAngleSlider"
+          aria-label="線の角度"
+          min={-MAX_LINE_ANGLE}
+          max={MAX_LINE_ANGLE}
+          step={1}
+          value={angle}
+          onChange={(e) => updateLineAngle(line.id, Number(e.target.value))}
+          onDoubleClick={() => updateLineAngle(line.id, 0)}
+        />
+        <input
+          type="number"
+          className="lineAngleInput"
+          aria-label="線の角度(度)"
+          min={-MAX_LINE_ANGLE}
+          max={MAX_LINE_ANGLE}
+          value={angle}
+          onChange={(e) => updateLineAngle(line.id, parseFloat(e.target.value) || 0)}
+        />
+        <span className="lineAngleUnit">°</span>
+      </div>
+    </div>
+  );
+}
 
 const SPECIAL_PRESETS = [
   { id: "piano", label: "ピアノ", side: "left" as const },
@@ -9,7 +62,7 @@ const SPECIAL_PRESETS = [
 ];
 
 export function LineSettings() {
-  const { activePattern, toggleCenterLine, updateLinePos, removeLine, toggleSpecialMarker } = useApp();
+  const { activePattern, toggleCenterLine, toggleSpecialMarker } = useApp();
   const markers = activePattern.specialMarkers ?? [];
 
   return (
@@ -41,23 +94,7 @@ export function LineSettings() {
         </div>
         <div className="linesList">
           {activePattern.lines.map((line) => (
-            <div className="lineItem" key={line.id}>
-              <span className="lineTypeLabel">縦線</span>
-              <input
-                type="number"
-                value={Math.round(line.pos)}
-                onChange={(e) => updateLinePos(line.id, parseFloat(e.target.value) || 0)}
-              />
-              <button
-                type="button"
-                className="btn remove"
-                aria-label="この線を削除"
-                title="この線を削除"
-                onClick={() => removeLine(line.id)}
-              >
-                <TrashIcon />
-              </button>
-            </div>
+            <LineItemRow key={line.id} line={line} />
           ))}
         </div>
       </div>
