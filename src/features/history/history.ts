@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   limit,
@@ -24,7 +25,8 @@ export interface HistoryEntry {
 
 // Edits by the same tab within this window are folded into one history entry
 const SESSION_MS = 10 * 60 * 1000;
-const MAX_ENTRIES = 50;
+// Older entries beyond this are deleted whenever a new entry is started
+const MAX_ENTRIES = 20;
 
 // Shared layouts keep their history next to the shared document so every collaborator sees it;
 // private layouts keep it in the owner's account.
@@ -43,9 +45,11 @@ export async function recordHistory(pattern: Pattern, uid: string | null) {
   const key = col.path;
   const now = Date.now();
   let session = sessions.get(key);
+  let isNew = false;
   if (!session || session.uid !== editor.uid || now - session.startedAt > SESSION_MS) {
     session = { id: doc(col).id, startedAt: now, uid: editor.uid };
     sessions.set(key, session);
+    isNew = true;
   }
   await setDoc(doc(col, session.id), {
     uid: editor.uid,
@@ -55,6 +59,12 @@ export async function recordHistory(pattern: Pattern, uid: string | null) {
     endedAt: now,
     at: serverTimestamp(),
   });
+  if (isNew) pruneHistory(col).catch((e) => console.error(e));
+}
+
+async function pruneHistory(col: CollectionReference) {
+  const snap = await getDocs(query(col, orderBy("endedAt", "desc")));
+  await Promise.all(snap.docs.slice(MAX_ENTRIES).map((d) => deleteDoc(d.ref)));
 }
 
 export async function fetchHistory(pattern: Pattern, uid: string | null): Promise<HistoryEntry[]> {
